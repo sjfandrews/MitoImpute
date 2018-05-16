@@ -6,79 +6,162 @@ SAMPLE = config['sample']
 
 rule all:
     input:
-        "~/Documents/MitoImpute/Scripts/McInerney_Master_Alignment_ambig2missing.vcf.gz"
+        expand("DerivedData/RefencePanel.{ext}", ext = ['hap.gz', 'legend.gz']),
+        expand("DerivedData/RefencePanel.{ext}", ext = ['ped', 'map']),
+        expand("DerivedData/RefencePanel.{ext}", ext = ['gen.gz', 'sample'])
 
 ## 1. Run the ambiguous2missing.py script to change ambiguous character states to missing data:
 rule ambiguous2missing:
     input:
-        "~/Documents/MitoImpute/Scripts/ambiguous2missing.py",
-        "~/Documents/MitoImpute/Scripts/McInerney_Master_Alignment_Nov30_2017.fasta",
+        "scripts/PYTHON/ambiguous2missing.py",
+        "data/McInerney_Master_Alignment_Nov30_2017.fasta",
     output:
-        "~/Documents/MitoImpute/DerivedData/McInerney_Master_Alignment_Nov30_2017_ambig2missing.fasta",
+        "DerivedData/McInerney_Master_Alignment_Nov30_2017_ambig2missing.fasta",
     params:
-        in_fasta = "~/Documents/MitoImpute/Scripts/McInerney_Master_Alignment_Nov30_2017.fasta",
-        in_script = "~/Documents/MitoImpute/Scripts/ambiguous2missing.py",
+        in_fasta = "data/McInerney_Master_Alignment_Nov30_2017.fasta",
+        in_script = "scripts/PYTHON/ambiguous2missing.py",
+        out = "DerivedData/McInerney_Master_Alignment_Nov30_2017_ambig2missing.fasta"
     shell:
-        'python {params.in_script} -i {params.fasta} -v'
+        'python {params.in_script} -i {params.in_fasta} -o {params.out} -v'
 
 ## 2. Run the fasta2vcf_mtDNA.py script
 rule fasta2vcf:
     input:
-        "~/Documents/MitoImpute/Scripts/fasta2vcf_mtDNA.py",
-        "~/Documents/MitoImpute/DerivedData/McInerney_Master_Alignment_Nov30_2017_ambig2missing.fasta",
+        "scripts/PYTHON/fasta2vcf_mtDNA.py",
+        "DerivedData/McInerney_Master_Alignment_Nov30_2017_ambig2missing.fasta"
     output:
-        "~/Documents/MitoImpute/DerivedData/McInerney_Master_Alignment_ambig2missing.vcf.gz",
+        "DerivedData/McInerney_Master_Alignment_Nov30_2017_ambig2missing.vcf.gz"
     params:
-        in_fasta = "~/Documents/MitoImpute/DerivedData/McInerney_Master_Alignment_Nov30_2017_ambig2missing.fasta",
-        in_script = "~/Documents/MitoImpute/Scripts/fasta2vcf_mtDNA.py",
-        out = "~/Documents/MitoImpute/DerivedData/McInerney_Master_Alignment_Nov30_2017_ambig2missing.vcf.gz",
+        in_fasta = "DerivedData/McInerney_Master_Alignment_Nov30_2017_ambig2missing.fasta",
+        in_script = "scripts/PYTHON/fasta2vcf_mtDNA.py",
+        out = "DerivedData/McInerney_Master_Alignment_Nov30_2017_ambig2missing.vcf.gz"
     shell:
-        'python {params.in_script} -i {params.fasta} -o {params.out} -v'
+        'python {params.in_script} -i {params.in_fasta} -o {params.out} -v'
 
-## 3. Pass the resulting VCF through BCFTOOLS to make sure it conforms to all standards and index it
+# 3. Pass the resulting VCF through BCFTOOLS to make sure it conforms to all standards and index it
 rule bcf:
     input:
-        "~/Documents/MitoImpute/DerivedData/McInerney_Master_Alignment_Nov30_2017_ambig2missing.vcf.gz",
+        "DerivedData/McInerney_Master_Alignment_Nov30_2017_ambig2missing.vcf.gz",
     output:
-        "~/Documents/MitoImpute/DerivedData/McInerney_Master_Alignment_Nov30_2017_ambig2missing.vcf.gz",
+        "DerivedData/Refence_panal.vcf.gz",
     params:
-        in_vcf = "~/Documents/MitoImpute/DerivedData/McInerney_Master_Alignment_Nov30_2017_ambig2missing.vcf.gz",
-        out = "~/Documents/MitoImpute/DerivedData/McInerney_Master_Alignment_Nov30_2017_ambig2missing.vcf.gz",
+        in_vcf = "DerivedData/McInerney_Master_Alignment_Nov30_2017_ambig2missing.vcf.gz",
+        out_vcf = "DerivedData/Refence_panal.vcf.gz",
+    run:
+        shell('bcftools view -Oz -o {params.out_vcf} {params.in_vcf}')
+        shell('bcftools index {params.out_vcf}')
+
+# 4a. Identify samples with highQuality sequences
+rule LowQualitySequences:
+    input:
+        "DerivedData/McInerney_Master_Alignment_Nov30_2017_ambig2missing.fasta",
+        "scripts/R/removeLowQuality_cmdline.R",
+    output:
+        "scripts/INFORMATION_LISTS/ReferencePanel_highQualitySequences.txt",
+    params:
+        in_fasta = "DerivedData/McInerney_Master_Alignment_Nov30_2017_ambig2missing.fasta",
+        in_script = "scripts/R/removeLowQuality_cmdline.R",
+        out = "scripts/INFORMATION_LISTS/ReferencePanel_highQualitySequences.txt",
     shell:
-        'bcftools view -Oz -o {params.out} {params.vcf} | bcftools index'
+        'Rscript {params.in_script} {params.in_fasta} {params.out}'
 
-## 4a. Remove low quality samples
-#$ bcftools view -S ^low_quality_samples.txt -Oz -o McInerney_Master_Alignment_Nov30_2017_ambig2missing_highQual.vcf.gz McInerney_Master_Alignment_Nov30_2017_ambig2missing.vcf.gz
-#$ bcftools index McInerney_Master_Alignment_Nov30_2017_ambig2missing_highQual.vcf.gz
-
-## 4b. Only include high quality samples
-#$ bcftools view -S high_quality_samples.txt -Oz -o McInerney_Master_Alignment_Nov30_2017_ambig2missing_highQual.vcf.gz McInerney_Master_Alignment_Nov30_2017_ambig2missing.vcf.gz
-#$ bcftools index McInerney_Master_Alignment_Nov30_2017_ambig2missing_highQual.vcf.gz
+## 4b. Remove low quality samples
+rule RemoveLowQuality:
+    input:
+        "scripts/INFORMATION_LISTS/ReferencePanel_highQualitySequences.txt",
+        "DerivedData/Refence_panal.vcf.gz",
+    output:
+        "DerivedData/RefencePanel_highQual.vcf.gz",
+    params:
+        in_vcf = "DerivedData/Refence_panal.vcf.gz",
+        quality = "scripts/INFORMATION_LISTS/ReferencePanel_highQualitySequences.txt",
+        out_vcf = "DerivedData/RefencePanel_highQual.vcf.gz",
+    run:
+        shell('bcftools view -S ^{params.quality} -Oz -o {params.out_vcf} {params.in_vcf}')
+        shell('bcftools index {params.out_vcf}')
 
 ## 5. Apply filtration criteria
-#$ bcftools +fill-tags McInerney_Master_Alignment_Nov30_2017_ambig2missing_highQual.vcf.gz  | bcftools norm -m -any | bcftools view -q 0.01 -Q 0.99 | bcftools view -i 'ALT!="*" && POS!=302 && POS!=303 && POS!=308 && POS!=309 && POS!=310 && POS!=513 && POS!=515 && POS!=522 && POS!=523 && POS!=3106 && POS!=3107' -Oz -o McInerney_Master_Alignment_Nov30_2017_ambig2missing_highQual_filtered.vcf.gz
-#$ bcftools index McInerney_Master_Alignment_Nov30_2017_ambig2missing_highQual_filtered.vcf.gz
+rule SiteFiltration:
+    input:
+        "DerivedData/RefencePanel_highQual.vcf.gz",
+    output:
+        "DerivedData/RefencePanel_highQual_filtered.vcf.gz",
+    params:
+        in_vcf = "DerivedData/RefencePanel_highQual.vcf.gz",
+        out_vcf = "DerivedData/RefencePanel_highQual_filtered.vcf.gz",
+    run:
+        shell('bcftools +fill-tags {params.in_vcf} | bcftools norm -m -any | bcftools view -q 0.01 -Q 0.99 | bcftools view -i \'ALT!="*" && POS!=302 && POS!=303 && POS!=308 && POS!=309 && POS!=310 && POS!=513 && POS!=515 && POS!=522 && POS!=523 && POS!=3106 && POS!=3107\' -Oz -o {params.out_vcf}')
+        shell('bcftools index {params.out_vcf}')
 
-## 6. Extract sample names and assign M sex label
-#$ bcftools query -l McInerney_Master_Alignment_Nov30_2017_ambig2missing_highQual_filtered.vcf.gz > McInerney_Master_Alignment_Nov30_2017_ambig2missing_highQual_filtered_SEX.txt
-#$ Rscript assign_sex_labels.R McInerney_Master_Alignment_Nov30_2017_ambig2missing_highQual_filtered_SEX.txt
+## 6a. Extract sample names from Reference Panel
+rule RefSampleNames:
+    input:
+        "DerivedData/RefencePanel_highQual_filtered.vcf.gz",
+    output:
+        "scripts/INFORMATION_LISTS/RefSampleList.txt",
+    params:
+        in_vcf = "DerivedData/RefencePanel_highQual.vcf.gz",
+        out_samples = "scripts/INFORMATION_LISTS/RefSampleList.txt",
+    shell:
+        'bcftools query -l {params.in_vcf} > {params.out_samples}'
 
-#$ bcftools query -l ADNI_samples.vcf.gz > ADNI_samples_SEX.txt
-#$ Rscript assign_sex_labels.R ADNI_samples_SEX.txt
+## 6b. Assign M sex label to reference Samples
+rule RefSampleSex:
+    input:
+        "scripts/INFORMATION_LISTS/RefSampleList.txt",
+        "scripts/R/assign_sex_label.R"
+    output:
+        "DerivedData/RefSampleList_sex.txt",
+    params:
+        in_script = "scripts/R/assign_sex_label.R",
+        in_samples = "scripts/INFORMATION_LISTS/RefSampleList.txt",
+        outfile = "DerivedData/RefSampleList_sex.txt"
+    shell:
+        'Rscript {params.in_script} {params.in_samples} {params.outfile}'
 
 ## 7. Convert to Oxford format
-#$ bcftools convert --haplegendsample McInerney_Master_Alignment_Nov30_2017_ambig2missing_highQual_filtered McInerney_Master_Alignment_Nov30_2017_ambig2missing_highQual_filtered.vcf.gz --sex McInerney_Master_Alignment_Nov30_2017_ambig2missing_highQual_filtered_SEX.txt
-
-#$ bcftools convert --haplegendsample ADNI_samples ADNI_samples.vcf.gz --sex ADNI_samples_SEX.txt
+rule Oxford:
+    input:
+        "DerivedData/RefencePanel_highQual_filtered.vcf.gz",
+        "DerivedData/RefSampleList_sex.txt"
+    output:
+        expand("DerivedData/RefencePanel.{ext}", ext = ['hap.gz', 'legend.gz'])
+    params:
+        in_vcf = "DerivedData/RefencePanel_highQual_filtered.vcf.gz",
+        in_sex = "DerivedData/RefSampleList_sex.txt",
+        out = "DerivedData/RefencePanel"
+    shell:
+        'bcftools convert --haplegendsample {params.out} {params.in_vcf} --sex {params.in_sex}'
 
 ## 8. Generate .ped and .map files
-#$ plink --vcf McInerney_Master_Alignment_Nov30_2017_ambig2missing_highQual_filtered.vcf.gz --recode --double-id --out McInerney_Master_Alignment_Nov30_2017_ambig2missing_highQual_filtered
-
-#$ plink --vcf ADNI_samples.vcf.gz --recode --double-id --out ADNI_samples
+rule Plink:
+    input:
+        "DerivedData/RefencePanel_highQual_filtered.vcf.gz",
+    output:
+        expand("DerivedData/RefencePanel.{ext}", ext = ['ped', 'map'])
+    params:
+        in_vcf = "DerivedData/RefencePanel_highQual_filtered.vcf.gz",
+        out = "DerivedData/RefencePanel"
+    shell:
+        'plink --vcf {params.in_vcf} --recode --double-id --out {params.out}'
 
 ## 9. Generate .gen and .sample files
-#$ bcftools convert --gensample McInerney_Master_Alignment_Nov30_2017_ambig2missing_highQual_filtered McInerney_Master_Alignment_Nov30_2017_ambig2missing_highQual_filtered.vcf.gz --sex McInerney_Master_Alignment_Nov30_2017_ambig2missing_highQual_filtered_SEX.txt
+rule GenSample:
+    input:
+        "DerivedData/RefencePanel_highQual_filtered.vcf.gz",
+        "DerivedData/RefSampleList_sex.txt"
+    output:
+        expand("DerivedData/RefencePanel.{ext}", ext = ['gen.gz', 'sample'])
+    params:
+        in_vcf = "DerivedData/RefencePanel_highQual_filtered.vcf.gz",
+        in_sex = "DerivedData/RefSampleList_sex.txt",
+        out = "DerivedData/RefencePanel"
+    shell:
+        'bcftools convert --gensample {params.out} {params.in_vcf} --sex {params.in_sex}'
 
+
+#$ bcftools convert --haplegendsample ADNI_samples ADNI_samples.vcf.gz --sex ADNI_samples_SEX.txt
+#$ plink --vcf ADNI_samples.vcf.gz --recode --double-id --out ADNI_samples
 #$ bcftools convert --gensample ADNI_samples ADNI_samples.vcf.gz --sex ADNI_samples_SEX.txt
 
 ## 10. Run IMPUTE2
