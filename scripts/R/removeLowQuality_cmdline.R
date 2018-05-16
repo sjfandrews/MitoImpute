@@ -49,7 +49,7 @@ for (i in 1:nrow(aln)) {
 #df.gap = subset(df, df$gap > 7)
 
 df.highQual = subset(df, df$n <= 5)
-df.highQual = subset(df.highQual, df$gap <= 7)
+df.highQual = subset(df.highQual, df.highQual$gap <= 7)
 #df.lowQual = subset(df, df$n > 5)
 #df.lowQual = subset(df.lowQual, df$gap > 7)
 
