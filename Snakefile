@@ -6,46 +6,47 @@ SAMPLE = config['sample']
 
 rule all:
     input:
-        "~/Documents/MitoImpute/Scripts/McInerney_Master_Alignment_ambig2missing.vcf.gz"
+        "DerivedData/McInerney_Master_Alignment_Nov30_2017_ambig2missing.vcf.gz"
 
 ## 1. Run the ambiguous2missing.py script to change ambiguous character states to missing data:
 rule ambiguous2missing:
     input:
-        "~/Documents/MitoImpute/Scripts/ambiguous2missing.py",
-        "~/Documents/MitoImpute/Scripts/McInerney_Master_Alignment_Nov30_2017.fasta",
+        "scripts/PYTHON/ambiguous2missing.py",
+        "data/McInerney_Master_Alignment_Nov30_2017.fasta",
     output:
-        "~/Documents/MitoImpute/DerivedData/McInerney_Master_Alignment_Nov30_2017_ambig2missing.fasta",
+        "DerivedData/McInerney_Master_Alignment_Nov30_2017_ambig2missing.fasta",
     params:
-        in_fasta = "~/Documents/MitoImpute/Scripts/McInerney_Master_Alignment_Nov30_2017.fasta",
-        in_script = "~/Documents/MitoImpute/Scripts/ambiguous2missing.py",
+        in_fasta = "data/McInerney_Master_Alignment_Nov30_2017.fasta",
+        in_script = "scripts/PYTHON/ambiguous2missing.py",
+        out = "DerivedData/McInerney_Master_Alignment_Nov30_2017_ambig2missing.fasta"
     shell:
-        'python {params.in_script} -i {params.fasta} -v'
+        'python {params.in_script} -i {params.in_fasta} -o {params.out} -v'
 
 ## 2. Run the fasta2vcf_mtDNA.py script
 rule fasta2vcf:
     input:
-        "~/Documents/MitoImpute/Scripts/fasta2vcf_mtDNA.py",
-        "~/Documents/MitoImpute/DerivedData/McInerney_Master_Alignment_Nov30_2017_ambig2missing.fasta",
+        "scripts/PYTHON/fasta2vcf_mtDNA.py",
+        "DerivedData/McInerney_Master_Alignment_Nov30_2017_ambig2missing.fasta"
     output:
-        "~/Documents/MitoImpute/DerivedData/McInerney_Master_Alignment_ambig2missing.vcf.gz",
+        "DerivedData/McInerney_Master_Alignment_Nov30_2017_ambig2missing.vcf.gz"
     params:
-        in_fasta = "~/Documents/MitoImpute/DerivedData/McInerney_Master_Alignment_Nov30_2017_ambig2missing.fasta",
-        in_script = "~/Documents/MitoImpute/Scripts/fasta2vcf_mtDNA.py",
-        out = "~/Documents/MitoImpute/DerivedData/McInerney_Master_Alignment_Nov30_2017_ambig2missing.vcf.gz",
+        in_fasta = "DerivedData/McInerney_Master_Alignment_Nov30_2017_ambig2missing.fasta",
+        in_script = "scripts/PYTHON/fasta2vcf_mtDNA.py",
+        out = "DerivedData/McInerney_Master_Alignment_Nov30_2017_ambig2missing.vcf.gz"
     shell:
-        'python {params.in_script} -i {params.fasta} -o {params.out} -v'
+        'python {params.in_script} -i {params.in_fasta} -o {params.out} -v'
 
 ## 3. Pass the resulting VCF through BCFTOOLS to make sure it conforms to all standards and index it
-rule bcf:
-    input:
-        "~/Documents/MitoImpute/DerivedData/McInerney_Master_Alignment_Nov30_2017_ambig2missing.vcf.gz",
-    output:
-        "~/Documents/MitoImpute/DerivedData/McInerney_Master_Alignment_Nov30_2017_ambig2missing.vcf.gz",
-    params:
-        in_vcf = "~/Documents/MitoImpute/DerivedData/McInerney_Master_Alignment_Nov30_2017_ambig2missing.vcf.gz",
-        out = "~/Documents/MitoImpute/DerivedData/McInerney_Master_Alignment_Nov30_2017_ambig2missing.vcf.gz",
-    shell:
-        'bcftools view -Oz -o {params.out} {params.vcf} | bcftools index'
+#rule bcf:
+#    input:
+#        "~/Documents/MitoImpute/DerivedData/McInerney_Master_Alignment_Nov30_2017_ambig2missing.vcf.gz",
+#    output:
+#        "~/Documents/MitoImpute/DerivedData/McInerney_Master_Alignment_Nov30_2017_ambig2missing.vcf.gz",
+#    params:
+#        in_vcf = "~/Documents/MitoImpute/DerivedData/McInerney_Master_Alignment_Nov30_2017_ambig2missing.vcf.gz",
+#        out = "~/Documents/MitoImpute/DerivedData/McInerney_Master_Alignment_Nov30_2017_ambig2missing.vcf.gz",
+#    shell:
+#        'bcftools view -Oz -o {params.out} {params.vcf} | bcftools index'
 
 ## 4a. Remove low quality samples
 #$ bcftools view -S ^low_quality_samples.txt -Oz -o McInerney_Master_Alignment_Nov30_2017_ambig2missing_highQual.vcf.gz McInerney_Master_Alignment_Nov30_2017_ambig2missing.vcf.gz
