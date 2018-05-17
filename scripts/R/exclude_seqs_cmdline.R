@@ -1,3 +1,5 @@
+suppressPackageStartupMessages(library(tidyverse))
+
 args = commandArgs(trailingOnly = TRUE) # Set arguments from the command line
 
 full.file = args[1] # List of sequences
@@ -13,14 +15,14 @@ if (is.na(out.file) == TRUE | is.null(out.file) == TRUE) {
 }
 message("")
 
-full.obj = read.table(full.file, header = F)
-exclude.obj = read.table(exclude.file, header = F)
+full.obj = read_table(full.file,  col_names = F)
+exclude.obj = read_table(exclude.file,  col_names = F)
 
 exclude.obj = unique(exclude.obj)
-exclude.obj = exclude.obj$V1[exclude.obj$V1 %in% full.obj$V1]
+exclude.obj = exclude.obj$X1[exclude.obj$X1 %in% full.obj$X1]
 message("EXCLUDING ", length(exclude.obj), " SEQUENCES")
 
-final = data.frame(full.obj$V1[!full.obj$V1 %in% exclude.obj])
+final = data.frame(full.obj$X1[!full.obj$X1 %in% exclude.obj])
 message("SEQUENCES REMAINING AFTER FILTERING: ", nrow(final))
 
 write.table(final, out.file, col.names = F, row.names = F, quote = F, sep = "\t")
