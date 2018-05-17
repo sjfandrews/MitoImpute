@@ -66,11 +66,56 @@ rule LowQualitySequences:
     shell:
         'Rscript {params.in_script} {params.in_fasta} {params.out}'
 
-## 4b. Remove low quality samples
+## 4b. Remove Ancient Homo-sapien sequences
+rule RemoveAncients:
+    input:
+        "scripts/INFORMATION_LISTS/exclusion_lists/ancient.exclude_MOD.txt",
+        "DerivedData/Refence_panal.vcf.gz",
+    output:
+        "DerivedData/RefencePanel_NoAncients.vcf.gz",
+    params:
+        in_vcf = "DerivedData/Refence_panal.vcf.gz",
+        ancients = "scripts/INFORMATION_LISTS/exclusion_lists/ancient.exclude_MOD.txt",
+        out_vcf = "DerivedData/RefencePanel_NoAncients.vcf.gz",
+    run:
+        shell('bcftools view -S ^{params.ancients} -Oz -o {params.out_vcf} {params.in_vcf}')
+        shell('bcftools index {params.out_vcf}')
+
+## 4c. Remove Ancient Homo-sapien sequences
+rule RemoveNonSapiens:
+    input:
+        "scripts/INFORMATION_LISTS/exclusion_lists/species.exclude_MOD.txt",
+        "DerivedData/RefencePanel_NoAncients.vcf.gz",
+    output:
+        "DerivedData/RefencePanel_NoAncients_Sapiens.vcf.gz",
+    params:
+        in_vcf = "DerivedData/RefencePanel_NoAncients.vcf.gz",
+        NonSapiens = "scripts/INFORMATION_LISTS/exclusion_lists/ancient.exclude_MOD.txt",
+        out_vcf = "DerivedData/RefencePanel_NoAncients_Sapiens.vcf.gz",
+    run:
+        shell('bcftools view --force-samples -S ^{params.NonSapiens} -Oz -o {params.out_vcf} {params.in_vcf}')
+        shell('bcftools index {params.out_vcf}')
+
+## 4d. Remove Ancient Homo-sapien sequences
+rule RemovePartial:
+    input:
+        "scripts/INFORMATION_LISTS/exclusion_lists/partial.exclude_MOD.txt",
+        "DerivedData/RefencePanel_NoAncients_Sapiens.vcf.gz",
+    output:
+        "DerivedData/RefencePanel_NoAncients_Sapiens_NoPartials.vcf.gz",
+    params:
+        in_vcf = "DerivedData/RefencePanel_NoAncients.vcf.gz",
+        Partial = "scripts/INFORMATION_LISTS/exclusion_lists/partial.exclude_MOD.txt",
+        out_vcf = "DerivedData/RefencePanel_NoAncients_Sapiens_NoPartials.vcf.gz",
+    run:
+        shell('bcftools view --force-samples -S ^{params.Partial} -Oz -o {params.out_vcf} {params.in_vcf}')
+        shell('bcftools index {params.out_vcf}')
+
+## 4e. Remove low quality sequences
 rule RemoveLowQuality:
     input:
         "scripts/INFORMATION_LISTS/ReferencePanel_highQualitySequences.txt",
-        "DerivedData/Refence_panal.vcf.gz",
+        "DerivedData/RefencePanel_NoAncients_Sapiens_NoPartials.vcf.gz",
     output:
         "DerivedData/RefencePanel_highQual.vcf.gz",
     params:

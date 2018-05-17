@@ -1,3 +1,9 @@
+#!/usr/bin/Rscript
+##============================================================================##
+##      R script to construct a recombiation map file for Impute2
+##      Takes a VCF as input and outputs a .txt MAP file
+##============================================================================##
+
 suppressPackageStartupMessages(library(tidyverse))
 
 args = commandArgs(trailingOnly = TRUE) # Set arguments from the command line

@@ -1,14 +1,8 @@
 #!/usr/bin/Rscript
-require(tidyverse)
-
-args = commandArgs(trailingOnly=TRUE)
-filename <- args[1]
-outfile <- args[2]
-
 #-----------------------------------------------------##
-## 	Converting Yoruba (YRI - AF347015) SNP positions 
+## 	Converting Yoruba (YRI - AF347015) SNP positions
 ##	to the revised cambrige reference sequence (rCRS)
-##	https://www.mitomap.org/MITOMAP/YorubanConversion 
+##	https://www.mitomap.org/MITOMAP/YorubanConversion
 #	Yoruba		Cambridge
 #	1-309		Same
 #	310			Deleted
@@ -20,6 +14,12 @@ outfile <- args[2]
 #	16195		Deleted
 #	16196-16571	Subtract Two
 #-----------------------------------------------------##
+
+suppressPackageStartupMessages(library(tidyverse))
+
+args = commandArgs(trailingOnly=TRUE)
+filename <- args[1]
+outfile <- args[2]
 
 ##  Read in vcf file
 vcf <- read_tsv(filename, comment = '##')
