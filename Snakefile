@@ -8,7 +8,8 @@ rule all:
     input:
         expand("DerivedData/RefencePanel.{ext}", ext = ['hap.gz', 'legend.gz']),
         expand("DerivedData/RefencePanel.{ext}", ext = ['ped', 'map']),
-        expand("DerivedData/RefencePanel.{ext}", ext = ['gen.gz', 'samples'])
+        expand("DerivedData/RefencePanel.{ext}", ext = ['gen.gz', 'samples']),
+        "DerivedData/MtMap.txt"
 
 ## 1. Run the ambiguous2missing.py script to change ambiguous character states to missing data:
 rule ambiguous2missing:
@@ -39,7 +40,7 @@ rule fasta2vcf:
         'python {params.in_script} -i {params.in_fasta} -o {params.out} -v'
 
 # 3. Pass the resulting VCF through BCFTOOLS to make sure it conforms to all standards and index it
-rule bcf:
+rule VcfCheck:
     input:
         "DerivedData/McInerney_Master_Alignment_Nov30_2017_ambig2missing.vcf.gz",
     output:
@@ -160,9 +161,20 @@ rule GenSample:
         'bcftools convert --gensample {params.out} {params.in_vcf} --sex {params.in_sex}'
 
 ## 10. Construct .map file for IMPUTE2
-#rule MapFile:
-##    inpute:
-#        Scripts R mt_recombination map # need to make it an excutible script
+rule MakeMapFile:
+    input:
+        "scripts/R/mt_recombination_map.R",
+        "DerivedData/RefencePanel_highQual_filtered.vcf.gz"
+    output:
+        "DerivedData/MtMap.txt"
+    params:
+        in_vcf = "DerivedData/RefencePanel_highQual_filtered.vcf.gz",
+        in_script = "scripts/R/mt_recombination_map.R",
+        out = "DerivedData/MtMap.txt"
+    shell:
+        'Rscript {params.in_script} {params.in_vcf} {params.out}'
+
+
 #$ bcftools convert --haplegendsample ADNI_samples ADNI_samples.vcf.gz --sex ADNI_samples_SEX.txt
 #$ plink --vcf ADNI_samples.vcf.gz --recode --double-id --out ADNI_samples
 #$ bcftools convert --gensample ADNI_samples ADNI_samples.vcf.gz --sex ADNI_samples_SEX.txt
