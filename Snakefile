@@ -66,37 +66,38 @@ rule LowQualitySequences:
     shell:
         'Rscript {params.in_script} {params.in_fasta} {params.out}'
 
-## 4b. Remove Ancient Homo-sapien sequences
-rule RemoveAncients:
-    input:
-        "scripts/INFORMATION_LISTS/exclusion_lists/ancient.exclude_MOD.txt",
-        "DerivedData/Refence_panal.vcf.gz",
-    output:
-        "DerivedData/RefencePanel_NoAncients.vcf.gz",
-    params:
-        in_vcf = "DerivedData/Refence_panal.vcf.gz",
-        ancients = "scripts/INFORMATION_LISTS/exclusion_lists/ancient.exclude_MOD.txt",
-        out_vcf = "DerivedData/RefencePanel_NoAncients.vcf.gz",
-    run:
-        shell('bcftools view -S ^{params.ancients} -Oz -o {params.out_vcf} {params.in_vcf}')
-        shell('bcftools index {params.out_vcf}')
-
-## 4c. Remove Ancient Homo-sapien sequences
+## 4c. Remove NonSapiens
 rule RemoveNonSapiens:
     input:
         "scripts/INFORMATION_LISTS/exclusion_lists/species.exclude_MOD.txt",
-        "DerivedData/RefencePanel_NoAncients.vcf.gz",
+        "DerivedData/Refence_panal.vcf.gz",
     output:
-        "DerivedData/RefencePanel_NoAncients_Sapiens.vcf.gz",
+        "DerivedData/RefencePanel_Sapiens.vcf.gz",
     params:
-        in_vcf = "DerivedData/RefencePanel_NoAncients.vcf.gz",
-        NonSapiens = "scripts/INFORMATION_LISTS/exclusion_lists/ancient.exclude_MOD.txt",
-        out_vcf = "DerivedData/RefencePanel_NoAncients_Sapiens.vcf.gz",
+        in_vcf = "DerivedData/Refence_panal.vcf.gz",
+        NonSapiens = "scripts/INFORMATION_LISTS/exclusion_lists/species.exclude_MOD.txt",
+        out_vcf = "DerivedData/RefencePanel_Sapiens.vcf.gz",
     run:
         shell('bcftools view --force-samples -S ^{params.NonSapiens} -Oz -o {params.out_vcf} {params.in_vcf}')
         shell('bcftools index {params.out_vcf}')
 
-## 4d. Remove Ancient Homo-sapien sequences
+## 4b. Remove Ancient Homo-sapien sequences
+rule RemoveAncients:
+    input:
+        "scripts/INFORMATION_LISTS/exclusion_lists/ancient.exclude_MOD.txt",
+        "DerivedData/RefencePanel_Sapiens.vcf.gz",
+    output:
+        "DerivedData/RefencePanel_NoAncients_Sapiens.vcf.gz",
+    params:
+        in_vcf = "DerivedData/Refence_panal.vcf.gz",
+        ancients = "scripts/INFORMATION_LISTS/exclusion_lists/ancient.exclude_MOD.txt",
+        out_vcf = "DerivedData/RefencePanel_NoAncients_Sapiens.vcf.gz",
+    run:
+        shell('bcftools view -S ^{params.ancients} -Oz -o {params.out_vcf} {params.in_vcf}')
+        shell('bcftools index {params.out_vcf}')
+
+
+## 4d. Remove Partial sequences
 rule RemovePartial:
     input:
         "scripts/INFORMATION_LISTS/exclusion_lists/partial.exclude_MOD.txt",
@@ -104,7 +105,7 @@ rule RemovePartial:
     output:
         "DerivedData/RefencePanel_NoAncients_Sapiens_NoPartials.vcf.gz",
     params:
-        in_vcf = "DerivedData/RefencePanel_NoAncients.vcf.gz",
+        in_vcf = "DerivedData/RefencePanel_NoAncients_Sapiens.vcf.gz",
         Partial = "scripts/INFORMATION_LISTS/exclusion_lists/partial.exclude_MOD.txt",
         out_vcf = "DerivedData/RefencePanel_NoAncients_Sapiens_NoPartials.vcf.gz",
     run:
@@ -123,7 +124,7 @@ rule RemoveLowQuality:
         quality = "scripts/INFORMATION_LISTS/ReferencePanel_highQualitySequences.txt",
         out_vcf = "DerivedData/RefencePanel_highQual.vcf.gz",
     run:
-        shell('bcftools view -S ^{params.quality} -Oz -o {params.out_vcf} {params.in_vcf}')
+        shell('bcftools view -S {params.quality} -Oz -o {params.out_vcf} {params.in_vcf}')
         shell('bcftools index {params.out_vcf}')
 
 ## 5. Apply filtration criteria
@@ -136,7 +137,7 @@ rule SiteFiltration:
         in_vcf = "DerivedData/RefencePanel_highQual.vcf.gz",
         out_vcf = "DerivedData/RefencePanel_highQual_filtered.vcf.gz",
     run:
-        shell('bcftools +fill-tags {params.in_vcf} | bcftools norm -m -any | bcftools view -q 0.01 -Q 0.99 | bcftools view -i \'ALT!="*" && POS!=302 && POS!=303 && POS!=308 && POS!=309 && POS!=310 && POS!=513 && POS!=515 && POS!=522 && POS!=523 && POS!=3106 && POS!=3107\' -Oz -o {params.out_vcf}')
+        shell('vt decompose {params.in_vcf} | bcftools +fill-tags | bcftools view -i \'ALT!="-" \' | bcftools view -q 0.01 -Q 0.99 | bcftools view -Oz -o {params.out_vcf}')
         shell('bcftools index {params.out_vcf}')
 
 ## 6a. Extract sample names from Reference Panel
