@@ -6,22 +6,22 @@ SAMPLE = config['sample']
 
 rule all:
     input:
-        expand("DerivedData/RefencePanel.{ext}", ext = ['hap.gz', 'legend.gz']),
-        expand("DerivedData/RefencePanel.{ext}", ext = ['ped', 'map']),
-        expand("DerivedData/RefencePanel.{ext}", ext = ['gen.gz', 'samples']),
-        "DerivedData/MtMap.txt"
+        expand("DerivedData/ReferencePanel/ReferencePanel.{ext}", ext = ['hap.gz', 'legend.gz']),
+        expand("DerivedData/ReferencePanel/ReferencePanel.{ext}", ext = ['ped', 'map']),
+        expand("DerivedData/ReferencePanel/ReferencePanel.{ext}", ext = ['gen.gz', 'samples']),
+        "DerivedData/ReferencePanel/MtMap.txt"
 
 ## 1. Run the ambiguous2missing.py script to change ambiguous character states to missing data:
 rule ambiguous2missing:
     input:
         "scripts/PYTHON/ambiguous2missing.py",
-        "data/McInerney_Master_Alignment_Nov30_2017.fasta",
+        "data/ReferencePanel/McInerney_Master_Alignment_Nov30_2017.fasta",
     output:
-        "DerivedData/McInerney_Master_Alignment_Nov30_2017_ambig2missing.fasta",
+        "DerivedData/ReferencePanel/McInerney_Master_Alignment_Nov30_2017_ambig2missing.fasta",
     params:
-        in_fasta = "data/McInerney_Master_Alignment_Nov30_2017.fasta",
+        in_fasta = "data/ReferencePanel/McInerney_Master_Alignment_Nov30_2017.fasta",
         in_script = "scripts/PYTHON/ambiguous2missing.py",
-        out = "DerivedData/McInerney_Master_Alignment_Nov30_2017_ambig2missing.fasta"
+        out = "DerivedData/ReferencePanel/McInerney_Master_Alignment_Nov30_2017_ambig2missing.fasta"
     shell:
         'python {params.in_script} -i {params.in_fasta} -o {params.out} -v'
 
@@ -29,25 +29,25 @@ rule ambiguous2missing:
 rule fasta2vcf:
     input:
         "scripts/PYTHON/fasta2vcf_mtDNA.py",
-        "DerivedData/McInerney_Master_Alignment_Nov30_2017_ambig2missing.fasta"
+        "DerivedData/ReferencePanel/McInerney_Master_Alignment_Nov30_2017_ambig2missing.fasta"
     output:
-        "DerivedData/McInerney_Master_Alignment_Nov30_2017_ambig2missing.vcf.gz"
+        "DerivedData/ReferencePanel/McInerney_Master_Alignment_Nov30_2017_ambig2missing.vcf.gz"
     params:
-        in_fasta = "DerivedData/McInerney_Master_Alignment_Nov30_2017_ambig2missing.fasta",
+        in_fasta = "DerivedData/ReferencePanel/McInerney_Master_Alignment_Nov30_2017_ambig2missing.fasta",
         in_script = "scripts/PYTHON/fasta2vcf_mtDNA.py",
-        out = "DerivedData/McInerney_Master_Alignment_Nov30_2017_ambig2missing.vcf.gz"
+        out = "DerivedData/ReferencePanel/McInerney_Master_Alignment_Nov30_2017_ambig2missing.vcf.gz"
     shell:
         'python {params.in_script} -i {params.in_fasta} -o {params.out} -v'
 
 # 3. Pass the resulting VCF through BCFTOOLS to make sure it conforms to all standards and index it
 rule VcfCheck:
     input:
-        "DerivedData/McInerney_Master_Alignment_Nov30_2017_ambig2missing.vcf.gz",
+        "DerivedData/ReferencePanel/McInerney_Master_Alignment_Nov30_2017_ambig2missing.vcf.gz",
     output:
-        "DerivedData/Refence_panal.vcf.gz",
+        "DerivedData/ReferencePanel/Reference_panal.vcf.gz",
     params:
-        in_vcf = "DerivedData/McInerney_Master_Alignment_Nov30_2017_ambig2missing.vcf.gz",
-        out_vcf = "DerivedData/Refence_panal.vcf.gz",
+        in_vcf = "DerivedData/ReferencePanel/McInerney_Master_Alignment_Nov30_2017_ambig2missing.vcf.gz",
+        out_vcf = "DerivedData/ReferencePanel/Reference_panal.vcf.gz",
     run:
         shell('bcftools view -Oz -o {params.out_vcf} {params.in_vcf}')
         shell('bcftools index {params.out_vcf}')
@@ -55,12 +55,12 @@ rule VcfCheck:
 # 4a. Identify samples with highQuality sequences
 rule LowQualitySequences:
     input:
-        "DerivedData/McInerney_Master_Alignment_Nov30_2017_ambig2missing.fasta",
+        "DerivedData/ReferencePanel/McInerney_Master_Alignment_Nov30_2017_ambig2missing.fasta",
         "scripts/R/removeLowQuality_cmdline.R",
     output:
         "scripts/INFORMATION_LISTS/ReferencePanel_highQualitySequences.txt",
     params:
-        in_fasta = "DerivedData/McInerney_Master_Alignment_Nov30_2017_ambig2missing.fasta",
+        in_fasta = "DerivedData/ReferencePanel/McInerney_Master_Alignment_Nov30_2017_ambig2missing.fasta",
         in_script = "scripts/R/removeLowQuality_cmdline.R",
         out = "scripts/INFORMATION_LISTS/ReferencePanel_highQualitySequences.txt",
     shell:
@@ -70,13 +70,13 @@ rule LowQualitySequences:
 rule RemoveNonSapiens:
     input:
         "scripts/INFORMATION_LISTS/exclusion_lists/species.exclude_MOD.txt",
-        "DerivedData/Refence_panal.vcf.gz",
+        "DerivedData/ReferencePanel/Reference_panal.vcf.gz",
     output:
-        "DerivedData/RefencePanel_Sapiens.vcf.gz",
+        "DerivedData/ReferencePanel/ReferencePanel_Sapiens.vcf.gz",
     params:
-        in_vcf = "DerivedData/Refence_panal.vcf.gz",
+        in_vcf = "DerivedData/ReferencePanel/Reference_panal.vcf.gz",
         NonSapiens = "scripts/INFORMATION_LISTS/exclusion_lists/species.exclude_MOD.txt",
-        out_vcf = "DerivedData/RefencePanel_Sapiens.vcf.gz",
+        out_vcf = "DerivedData/ReferencePanel/ReferencePanel_Sapiens.vcf.gz",
     run:
         shell('bcftools view --force-samples -S ^{params.NonSapiens} -Oz -o {params.out_vcf} {params.in_vcf}')
         shell('bcftools index {params.out_vcf}')
@@ -85,13 +85,13 @@ rule RemoveNonSapiens:
 rule RemoveAncients:
     input:
         "scripts/INFORMATION_LISTS/exclusion_lists/ancient.exclude_MOD.txt",
-        "DerivedData/RefencePanel_Sapiens.vcf.gz",
+        "DerivedData/ReferencePanel/ReferencePanel_Sapiens.vcf.gz",
     output:
-        "DerivedData/RefencePanel_NoAncients_Sapiens.vcf.gz",
+        "DerivedData/ReferencePanel/ReferencePanel_NoAncients_Sapiens.vcf.gz",
     params:
-        in_vcf = "DerivedData/Refence_panal.vcf.gz",
+        in_vcf = "DerivedData/ReferencePanel/Reference_panal.vcf.gz",
         ancients = "scripts/INFORMATION_LISTS/exclusion_lists/ancient.exclude_MOD.txt",
-        out_vcf = "DerivedData/RefencePanel_NoAncients_Sapiens.vcf.gz",
+        out_vcf = "DerivedData/ReferencePanel/ReferencePanel_NoAncients_Sapiens.vcf.gz",
     run:
         shell('bcftools view -S ^{params.ancients} -Oz -o {params.out_vcf} {params.in_vcf}')
         shell('bcftools index {params.out_vcf}')
@@ -101,13 +101,13 @@ rule RemoveAncients:
 rule RemovePartial:
     input:
         "scripts/INFORMATION_LISTS/exclusion_lists/partial.exclude_MOD.txt",
-        "DerivedData/RefencePanel_NoAncients_Sapiens.vcf.gz",
+        "DerivedData/ReferencePanel/ReferencePanel_NoAncients_Sapiens.vcf.gz",
     output:
-        "DerivedData/RefencePanel_NoAncients_Sapiens_NoPartials.vcf.gz",
+        "DerivedData/ReferencePanel/ReferencePanel_NoAncients_Sapiens_NoPartials.vcf.gz",
     params:
-        in_vcf = "DerivedData/RefencePanel_NoAncients_Sapiens.vcf.gz",
+        in_vcf = "DerivedData/ReferencePanel/ReferencePanel_NoAncients_Sapiens.vcf.gz",
         Partial = "scripts/INFORMATION_LISTS/exclusion_lists/partial.exclude_MOD.txt",
-        out_vcf = "DerivedData/RefencePanel_NoAncients_Sapiens_NoPartials.vcf.gz",
+        out_vcf = "DerivedData/ReferencePanel/ReferencePanel_NoAncients_Sapiens_NoPartials.vcf.gz",
     run:
         shell('bcftools view --force-samples -S ^{params.Partial} -Oz -o {params.out_vcf} {params.in_vcf}')
         shell('bcftools index {params.out_vcf}')
@@ -116,13 +116,13 @@ rule RemovePartial:
 rule RemoveLowQuality:
     input:
         "scripts/INFORMATION_LISTS/ReferencePanel_highQualitySequences.txt",
-        "DerivedData/RefencePanel_NoAncients_Sapiens_NoPartials.vcf.gz",
+        "DerivedData/ReferencePanel/ReferencePanel_NoAncients_Sapiens_NoPartials.vcf.gz",
     output:
-        "DerivedData/RefencePanel_highQual.vcf.gz",
+        "DerivedData/ReferencePanel/ReferencePanel_highQual.vcf.gz",
     params:
-        in_vcf = "DerivedData/Refence_panal.vcf.gz",
+        in_vcf = "DerivedData/ReferencePanel/Reference_panal.vcf.gz",
         quality = "scripts/INFORMATION_LISTS/ReferencePanel_highQualitySequences.txt",
-        out_vcf = "DerivedData/RefencePanel_highQual.vcf.gz",
+        out_vcf = "DerivedData/ReferencePanel/ReferencePanel_highQual.vcf.gz",
     run:
         shell('bcftools view -S {params.quality} -Oz -o {params.out_vcf} {params.in_vcf}')
         shell('bcftools index {params.out_vcf}')
@@ -130,12 +130,12 @@ rule RemoveLowQuality:
 ## 5. Apply filtration criteria
 rule SiteFiltration:
     input:
-        "DerivedData/RefencePanel_highQual.vcf.gz",
+        "DerivedData/ReferencePanel/ReferencePanel_highQual.vcf.gz",
     output:
-        "DerivedData/RefencePanel_highQual_filtered.vcf.gz",
+        "DerivedData/ReferencePanel/ReferencePanel_highQual_filtered.vcf.gz",
     params:
-        in_vcf = "DerivedData/RefencePanel_highQual.vcf.gz",
-        out_vcf = "DerivedData/RefencePanel_highQual_filtered.vcf.gz",
+        in_vcf = "DerivedData/ReferencePanel/ReferencePanel_highQual.vcf.gz",
+        out_vcf = "DerivedData/ReferencePanel/ReferencePanel_highQual_filtered.vcf.gz",
     run:
         shell('vt decompose {params.in_vcf} | bcftools +fill-tags | bcftools view -i \'ALT!="-" \' | bcftools view -q 0.01 -Q 0.99 | bcftools view -Oz -o {params.out_vcf}')
         shell('bcftools index {params.out_vcf}')
@@ -143,11 +143,11 @@ rule SiteFiltration:
 ## 6a. Extract sample names from Reference Panel
 rule RefSampleNames:
     input:
-        "DerivedData/RefencePanel_highQual_filtered.vcf.gz",
+        "DerivedData/ReferencePanel/ReferencePanel_highQual_filtered.vcf.gz",
     output:
         "scripts/INFORMATION_LISTS/RefSampleList.txt",
     params:
-        in_vcf = "DerivedData/RefencePanel_highQual.vcf.gz",
+        in_vcf = "DerivedData/ReferencePanel/ReferencePanel_highQual.vcf.gz",
         out_samples = "scripts/INFORMATION_LISTS/RefSampleList.txt",
     shell:
         'bcftools query -l {params.in_vcf} > {params.out_samples}'
@@ -158,51 +158,51 @@ rule RefSampleSex:
         "scripts/INFORMATION_LISTS/RefSampleList.txt",
         "scripts/R/assign_sex_label.R"
     output:
-        "DerivedData/RefSampleList_sex.txt",
+        "DerivedData/ReferencePanel/RefSampleList_sex.txt",
     params:
         in_script = "scripts/R/assign_sex_label.R",
         in_samples = "scripts/INFORMATION_LISTS/RefSampleList.txt",
-        outfile = "DerivedData/RefSampleList_sex.txt"
+        outfile = "DerivedData/ReferencePanel/RefSampleList_sex.txt"
     shell:
         'Rscript {params.in_script} {params.in_samples} {params.outfile}'
 
 ## 7. Convert to Oxford format
 rule Oxford:
     input:
-        "DerivedData/RefencePanel_highQual_filtered.vcf.gz",
-        "DerivedData/RefSampleList_sex.txt"
+        "DerivedData/ReferencePanel/ReferencePanel_highQual_filtered.vcf.gz",
+        "DerivedData/ReferencePanel/RefSampleList_sex.txt"
     output:
-        expand("DerivedData/RefencePanel.{ext}", ext = ['hap.gz', 'legend.gz'])
+        expand("DerivedData/ReferencePanel/ReferencePanel.{ext}", ext = ['hap.gz', 'legend.gz'])
     params:
-        in_vcf = "DerivedData/RefencePanel_highQual_filtered.vcf.gz",
-        in_sex = "DerivedData/RefSampleList_sex.txt",
-        out = "DerivedData/RefencePanel"
+        in_vcf = "DerivedData/ReferencePanel/ReferencePanel_highQual_filtered.vcf.gz",
+        in_sex = "DerivedData/ReferencePanel/RefSampleList_sex.txt",
+        out = "DerivedData/ReferencePanel/ReferencePanel"
     shell:
         'bcftools convert --haplegendsample {params.out} {params.in_vcf} --sex {params.in_sex}'
 
 ## 8. Generate .ped and .map files
 rule Plink:
     input:
-        "DerivedData/RefencePanel_highQual_filtered.vcf.gz",
+        "DerivedData/ReferencePanel/ReferencePanel_highQual_filtered.vcf.gz",
     output:
-        expand("DerivedData/RefencePanel.{ext}", ext = ['ped', 'map'])
+        expand("DerivedData/ReferencePanel/ReferencePanel.{ext}", ext = ['ped', 'map'])
     params:
-        in_vcf = "DerivedData/RefencePanel_highQual_filtered.vcf.gz",
-        out = "DerivedData/RefencePanel"
+        in_vcf = "DerivedData/ReferencePanel/ReferencePanel_highQual_filtered.vcf.gz",
+        out = "DerivedData/ReferencePanel/ReferencePanel"
     shell:
         'plink --vcf {params.in_vcf} --recode --double-id --out {params.out}'
 
 ## 9. Generate .gen and .sample files
 rule GenSample:
     input:
-        "DerivedData/RefencePanel_highQual_filtered.vcf.gz",
-        "DerivedData/RefSampleList_sex.txt"
+        "DerivedData/ReferencePanel/ReferencePanel_highQual_filtered.vcf.gz",
+        "DerivedData/ReferencePanel/RefSampleList_sex.txt"
     output:
-        expand("DerivedData/RefencePanel.{ext}", ext = ['gen.gz', 'samples'])
+        expand("DerivedData/ReferencePanel/ReferencePanel.{ext}", ext = ['gen.gz', 'samples'])
     params:
-        in_vcf = "DerivedData/RefencePanel_highQual_filtered.vcf.gz",
-        in_sex = "DerivedData/RefSampleList_sex.txt",
-        out = "DerivedData/RefencePanel"
+        in_vcf = "DerivedData/ReferencePanel/ReferencePanel_highQual_filtered.vcf.gz",
+        in_sex = "DerivedData/ReferencePanel/RefSampleList_sex.txt",
+        out = "DerivedData/ReferencePanel/ReferencePanel"
     shell:
         'bcftools convert --gensample {params.out} {params.in_vcf} --sex {params.in_sex}'
 
@@ -210,13 +210,13 @@ rule GenSample:
 rule MakeMapFile:
     input:
         "scripts/R/mt_recombination_map.R",
-        "DerivedData/RefencePanel_highQual_filtered.vcf.gz"
+        "DerivedData/ReferencePanel/ReferencePanel_highQual_filtered.vcf.gz"
     output:
-        "DerivedData/MtMap.txt"
+        "DerivedData/ReferencePanel/MtMap.txt"
     params:
-        in_vcf = "DerivedData/RefencePanel_highQual_filtered.vcf.gz",
+        in_vcf = "DerivedData/ReferencePanel/ReferencePanel_highQual_filtered.vcf.gz",
         in_script = "scripts/R/mt_recombination_map.R",
-        out = "DerivedData/MtMap.txt"
+        out = "DerivedData/ReferencePanel/MtMap.txt"
     shell:
         'Rscript {params.in_script} {params.in_vcf} {params.out}'
 
