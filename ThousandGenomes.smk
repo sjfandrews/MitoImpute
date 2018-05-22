@@ -1,11 +1,13 @@
 '''Snakefile for Cleaning Thousand Genomes'''
-
+# snakemake -s ThousandGenomes.smk
+import os
 from snakemake.remote.FTP import RemoteProvider as FTPRemoteProvider
+
 FTP = FTPRemoteProvider()
 
 rule all:
     input:
-        "DerivedData/ThousandGenomes/chrMT_1kg_norm_decomposed_firstAlt.vcf.gz"
+        "DerivedData/ThousandGenomes/chrMT_1kg_norm_decomposed_firstAlt.vcf.gz",
 
 # 1. Pull down 1000 genomes mitochondrial vcf file from ftp
 rule Get1kgMT_vcf:
