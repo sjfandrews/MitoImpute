@@ -1,5 +1,6 @@
 '''Snakefile for Cleaning Thousand Genomes'''
 # snakemake -s ThousandGenomes.smk
+# snakemake -s ThousandGenomes.smk --dag | dot -Tsvg > dag_ThousandGenomes.svg
 import os
 from snakemake.remote.FTP import RemoteProvider as FTPRemoteProvider
 
@@ -82,15 +83,17 @@ rule ExtractPlatformMTsnps:
 rule vcf2gensample:
     input:
         vcf = "DerivedData/ThousandGenomes/{MtPlatforms}/chrMT_1kg_{MtPlatforms}.vcf.gz",
-        sex = "DerivedData/ThousandGenomes/SampleList1kg_sex.txt"
+        sex = "DerivedData/ThousandGenomes/SampleList1kg_sex.txt",
+        script = "scripts/R/FixSamplesFile.R"
     output:
-        expand("DerivedData/ThousandGenomes/{{MtPlatforms}}/chrMT_1kg_{{MtPlatforms}}.{ext}", ext = ['gen.gz', 'samples'])
+        expand("DerivedData/ThousandGenomes/{{MtPlatforms}}/chrMT_1kg_{{MtPlatforms}}.{ext}", ext = ['gen.gz', 'samples']),
     params:
         out = "DerivedData/ThousandGenomes/{MtPlatforms}/chrMT_1kg_{MtPlatforms}"
     shell:
-        "bcftools convert --gensample {params.out} {input.vcf} --sex {input.sex}"
+        'bcftools convert --gensample {params.out} {input.vcf} --sex {input.sex}; '
+        'Rscript {input.script} {params.out}.samples'
 
-rule Plink:
+rule vcf2Plink:
     input:
         vcf = "DerivedData/ThousandGenomes/{MtPlatforms}/chrMT_1kg_{MtPlatforms}.vcf.gz",
     output:
