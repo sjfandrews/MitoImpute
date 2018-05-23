@@ -25,7 +25,7 @@ read_tsv(strand.file, col_names = F, col_types = 'ccnncc') %>%
   filter(CHROM == 'MT') %>%
   select(CHROM, POS) %>%
   arrange(POS) %>% 
-  write_tsv(out.file)
+  write_tsv(out.file, col_names = F)
 
 
 
