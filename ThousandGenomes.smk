@@ -11,7 +11,9 @@ FTP = FTPRemoteProvider()
 rule all:
     input:
         expand("DerivedData/ThousandGenomes/{MtPlatforms}/chrMT_1kg_{MtPlatforms}.{ext}", ext = ['gen.gz', 'samples'], MtPlatforms=MtPlatforms),
-        expand("DerivedData/ThousandGenomes/{MtPlatforms}/chrMT_1kg_{MtPlatforms}.{ext}", ext = ['ped', 'map'], MtPlatforms=MtPlatforms)
+        expand("DerivedData/ThousandGenomes/{MtPlatforms}/chrMT_1kg_{MtPlatforms}.{ext}", ext = ['ped', 'map'], MtPlatforms=MtPlatforms),
+        expand("DerivedData/ThousandGenomes/chrMT_1kg_norm_decomposed_firstAlt.{ext}", ext = ['ped', 'map']),
+        "DerivedData/ThousandGenomes/chrMT_1kg_norm_decomposed_firstAlt.vcf.gz"
 
 # 1. Pull down 1000 genomes mitochondrial vcf file from ftp
 rule Get1kgMT_vcf:
@@ -50,6 +52,16 @@ rule pickFirstAlt:
     shell:
         "./scripts/PYTHON/pickFirstAlt {input.vcf} | bgzip > {output.vcf}; "
         "bcftools index {output.vcf}"
+
+rule wgs_vcf2Plink:
+    input:
+        vcf = "DerivedData/ThousandGenomes/chrMT_1kg_norm_decomposed_firstAlt.vcf.gz",
+    output:
+        expand("DerivedData/ThousandGenomes/chrMT_1kg_norm_decomposed_firstAlt.{ext}", ext = ['ped', 'map'])
+    params:
+        out = "DerivedData/ThousandGenomes/chrMT_1kg_norm_decomposed_firstAlt"
+    shell:
+        'plink --vcf {input.vcf} --recode --double-id --out {params.out}'
 
 ## 6a. Extract sample names from Reference Panel
 rule SampleNames1kg:
