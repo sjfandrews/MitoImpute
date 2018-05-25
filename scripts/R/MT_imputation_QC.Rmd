@@ -1,0 +1,343 @@
+---
+title: "Mitochondrial Imputaion QC"
+author: "Shea Andrews"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    df_print: paged
+    toc: true
+    number_sections: false
+    toc_depth: 3
+    toc_float:
+      collapsed: false
+      smooth_scroll: false
+editor_options: 
+  chunk_output_type: console
+params:
+  info.file: 
+  wgs.map: "/Users/sheaandrews/Dropbox/src/MitoImpute/DerivedData/ThousandGenomes/chrMT_1kg_norm_decomposed_firstAlt.map"
+  wgs.ped: "/Users/sheaandrews/Dropbox/src/MitoImpute/DerivedData/ThousandGenomes/chrMT_1kg_norm_decomposed_firstAlt.ped"
+  wgs.vcf: '/Users/sheaandrews/Dropbox/src/MitoImpute/DerivedData/ThousandGenomes/chrMT_1kg_norm_decomposed_firstAlt.vcf.gz'
+  typ.map: "/Users/sheaandrews/Dropbox/src/MitoImpute/DerivedData/ThousandGenomes/Human610-Quadv1_B-b37/chrMT_1kg_Human610-Quadv1_B-b37.map"
+  typ.ped: "/Users/sheaandrews/Dropbox/src/MitoImpute/DerivedData/ThousandGenomes/Human610-Quadv1_B-b37/chrMT_1kg_Human610-Quadv1_B-b37.ped"
+  typ.vcf: '/Users/sheaandrews/Dropbox/src/MitoImpute/DerivedData/ThousandGenomes/Human610-Quadv1_B-b37/chrMT_1kg_Human610-Quadv1_B-b37.vcf.gz'
+  imp.map: "/Users/sheaandrews/Documents/Test2/chrMT_1kg_Human610-Quadv1_B-b37_imp.map"
+  imp.ped: "/Users/sheaandrews/Documents/Test2/chrMT_1kg_Human610-Quadv1_B-b37_imp.ped"
+  imp.vcf: '/Users/sheaandrews/Desktop/chrMT_1kg_Human610-Quadv1_B-b37.vcf'
+  imp.info: "/Users/sheaandrews/Documents/Test2/chrMT_1kg_Human610-Quadv1_B-b37_info"
+---
+
+```{r setup, echo=FALSE, warning =FALSE, message=FALSE}
+library(tidyverse)
+library(ggforce)
+library(readxl)
+library(HiMC); data(nodes)
+
+##  Function
+source('~/Dropbox/Research/PostDoc/MitoWax/3_Scripts/import_snps.R', chdir = TRUE)
+
+##  Function for calculating mathews correlation coefficent (MCC)
+# Moddifed from the mccr package
+mccr <- function (act, pred) 
+{
+  TP <- sum(act %in% 1 & pred %in% 1)
+  TN <- sum(act %in% 0 & pred %in% 0)
+  FP <- sum(act %in% 0 & pred %in% 1)
+  FN <- sum(act %in% 1 & pred %in% 0)
+  denom <- as.double(TP + FP) * (TP + FN) * (TN + FP) * (TN + FN)
+  if (any((TP + FP) == 0, (TP + FN) == 0, (TN + FP) == 0, (TN + FN) == 0)) 
+    denom <- 1
+  mcc <- ((TP * TN) - (FP * FN))/sqrt(denom)
+  return(mcc)
+}
+
+```
+## Human610-Quadv1_B-b37 
+
+```{r readin, echo=FALSE, warning =FALSE, message=FALSE}
+##  Read in Thousand Genomes WGS 
+#     Plink .ped files 
+#     VCF Files
+wgs_1kg.ped <- generate_snp_data(params$wgs.map, params$wgs.ped)
+wgs_1kg.vcf <- read_tsv(params$wgs.vcf, comment = '##', na = c(".", "", "NA"))
+
+##  Read in Thousand Genomes WGS - Typed only
+#     Plink .ped files 
+typ_1kg.ped <- generate_snp_data(params$typ.map, params$typ.ped)
+typ_1kg.vcf <- read_tsv(params$typ.vcf, comment = '##', na = c(".", "", "NA"))
+
+##  Read in Thousand Genomes WGS - Imputed only
+#     Plink .ped files 
+imp_1kg.ped <- generate_snp_data(params$imp.map, params$imp.ped) 
+imp_1kg.ped <- imp_1kg.ped[,-c(grep("\\<189\\>", colnames(imp_1kg.ped)), grep("\\<16183\\>", colnames(imp_1kg.ped)))]
+imp_1kg.vcf <- read_tsv(params$imp.vcf, comment = '##', na = c(".", "", "NA"))
+imp_1kg.info <- read_delim(params$imp.info, delim = " ")
+
+```
+
+## Data Munging 
+```{r, echo=FALSE, warning =FALSE, message=FALSE}
+
+##  obtain intersect of SNPs from imputed and wgs 
+snp.intersect <- wgs_1kg.vcf %>% 
+  select(POS) %>% 
+  semi_join(imp_1kg.vcf, by = 'POS') %>%
+  mutate(POS = paste0('mt', POS))
+
+##  Munge imputed dataframe
+# Drop all columns but position and genotypes
+imp_1kg <- imp_1kg.vcf %>% 
+  select(-`#CHROM`, -ID, -REF, -ALT, -QUAL, -FILTER, -INFO, -FORMAT) %>% 
+  distinct(imp_1kg, POS, .keep_all = T) %>% 
+  mutate(POS = paste0('mt', POS))
+
+# Transpose dataframe
+imp_1kg <- imp_1kg %>%
+  gather(key = var_name, value = value, 2:ncol(imp_1kg)) %>% 
+  spread_(key = names(imp_1kg)[1],value = 'value')
+
+# substitute allels for NA, 0, 1 calls, change formate to interger
+imp_1kg <- as.tibble(sapply(imp_1kg, function(x) gsub('\\:.*', "", x)))
+imp_1kg[imp_1kg == './.'] <- NA
+imp_1kg[imp_1kg == '0/0'] <- 0
+imp_1kg[imp_1kg == '1/1'] <- 1
+imp_1kg <- imp_1kg %>% 
+  select(var_name, snp.intersect$POS) %>% 
+  mutate_at(vars(contains('mt')), as.integer)
+
+```
+
+```{r, echo=FALSE, warning =FALSE, message=FALSE}
+##  Munge ADNI wgs dataframe
+# Drop all columns but position and genotypes
+wgs_1kg <- wgs_1kg.vcf %>% 
+  select(-`#CHROM`, -ID, -REF, -ALT, -QUAL, -FILTER, -INFO, -FORMAT) %>% 
+  distinct(adni_imputed, POS, .keep_all = T) %>% 
+  mutate(POS = paste0('mt', POS))
+
+# Transpose dataframe
+wgs_1kg <- wgs_1kg %>%
+  gather(key = var_name, value = value, 2:ncol(wgs_1kg)) %>% 
+  spread_(key = names(wgs_1kg)[1],value = 'value')
+
+# substitute allels for NA, 0, 1 calls, change formate to interger
+wgs_1kg[wgs_1kg == './.'] <- NA
+wgs_1kg[wgs_1kg == '0/0'] <- 0
+wgs_1kg[wgs_1kg == '1/1'] <- 1
+wgs_1kg <- wgs_1kg %>% 
+  select(var_name, snp.intersect$POS) %>% 
+  mutate_at(vars(contains('mt')), as.integer) 
+
+
+```
+
+## SNP Concordance Statisitics
+Compare the genotype calls of the imputed SNPs to those of the SNPs from the WGS dataset.
+```{r, echo=FALSE}
+## calculate MCC between imputed and typed SNPs
+mccr.geno <- unlist(map2(wgs_1kg[,2:ncol(wgs_1kg)], imp_1kg[,2:ncol(imp_1kg)], function(a,b) mccr(a,b)))
+
+##  Calculate concordance between imputed and typed SNPs
+concodance.geno <- unlist(map2(imp_1kg[,2:ncol(imp_1kg)], wgs_1kg[,2:ncol(wgs_1kg)], function(a, b) sum(a == b, na.rm = T)/length(a)))
+
+##  Calculate allele frequency of typed SNPs from WGS data
+af <- unlist(map(wgs_1kg[,2:ncol(wgs_1kg)], function(a) sum(a, na.rm = T)/length(a)))
+
+##  Dataframe for summary stats
+summary.stats <- tibble(mtSNP = colnames(wgs_1kg[,2:ncol(wgs_1kg)]), 
+                        pos = as.integer(gsub('mt', '', colnames(wgs_1kg[,2:ncol(wgs_1kg)]))),
+                        af = af,
+                        mcc = mccr.geno,
+                        concodance = concodance.geno)
+
+##  merge on info.score file
+summary.stats <- left_join(summary.stats, select(imp_1kg.info, c(-snp_id, -rs_id)), by = c('pos' = 'position')) 
+summary.stats <- mutate(summary.stats, info.cat = cut_width(summary.stats$info, 0.25, boundary = 0))
+```
+
+
+```{r, echo=T}
+##  basic summary stats
+summary.stats %>% count(af > 0.01)
+summary.stats %>% count(mcc > 0.4)
+summary.stats %>% count(concodance < 0.9)
+summary.stats %>% count(info > 0.3); summary.stats %>% count(info > 0.5)
+```
+
+###MCC 
+[Mathews Correlation Coefficent](https://en.wikipedia.org/wiki/Matthews_correlation_coefficient) (MCC), which takes into account true and false positives and negatives and is generally regarded as a balanced measure which can be used even if the classes are of very different sizes.
+```{r, echo=F, message = FALSE, warning=F, fig.width=7.5, fig.height=4.7, fig.align='center', fig.cap= 'Fig. 1: MCC of Imputed SNPs'}
+##  Plots by bp position - all SNPs
+ggplot(summary.stats, aes(x = pos, y = mcc, colour = info.cat, size = af)) + geom_point() + theme_bw() + 
+  labs(x = 'mtDNA position', y = 'MCC', title = 'Imputed mtSNP allele vs sequenced mtSNP allele') + 
+  guides(colour=guide_legend(title="Impute2 Info")) + 
+  guides(size=guide_legend(title="Allele Frequency"))
+```
+
+###Concordance
+[Concordance](https://en.wikipedia.org/wiki/Concordance_(genetics)#Genotyping_studies) is a measure of the percentage of SNPs that are measured as identical.
+```{r, echo=F, message = FALSE, warning=F, fig.width=7.5, fig.height=4.7, fig.align='center', fig.cap= 'Fig. 2: Concordance of Imputed SNPs'}
+ggplot(summary.stats, aes(x = pos, y = concodance, colour = info.cat, size = af)) + geom_point() + theme_bw() + 
+  labs(x = 'mtDNA position', y = 'Concordance', title = 'Imputed mtSNP allele vs sequenced mtSNP allele') + 
+  guides(colour=guide_legend(title="Impute2 Info")) + 
+  guides(size=guide_legend(title="Allele Frequency"))
+```
+
+## Haplogroup Concordance 
+
+```{r haplogorups, echo=FALSE, warning =FALSE, message=FALSE}
+## Assign haplogroup assignments using Hi-MC
+#   WGS 
+MTwgs.classifications <- HiMC::getClassifications(wgs_1kg.ped)
+
+#   Typed Only
+MTtyp.classifications <- HiMC::getClassifications(typ_1kg.ped)
+
+#   Imputed 
+## remove sites with poor info scores (< 0.3)
+rm.info <- filter(summary.stats, info > 0.8)
+imp_1kg.filtered <- imp_1kg.ped[,colnames(imp_1kg.ped) %in% c('Individual', rm.info$pos)]
+
+MTimp.classifications <- HiMC::getClassifications(imp_1kg.filtered)
+
+MT_haps <- MTwgs.classifications %>% 
+  left_join(MTtyp.classifications, by = 'Individual', suffix = c("_wgs", "_typ")) %>% 
+  left_join(MTimp.classifications, by = 'Individual') %>%
+  rename(full_path_imp = full_path, haplogroup_imp = haplogroup) %>%
+  as.tibble()
+```
+
+### Alluvial Diagram
+
+```{r haplogorups, echo=FALSE, warning =FALSE, message=FALSE}
+
+## Count pairs of haplogroups of imputed and WGS assignments
+hap.match <- MT_haps %>%
+  count(haplogroup_typ, haplogroup_wgs) %>% 
+  mutate(match = haplogroup_typ == haplogroup_wgs) 
+
+## Use ggforce to tidy data for geom_parallel Sets 
+# Requires developmental version of ggforce
+dat_ggforce <- hap.match  %>%
+  gather_set_data(1:2) %>%       
+  arrange(x,haplogroup_wgs,desc(haplogroup_typ))
+
+# Label Names for Aluvial diagram
+dat_ggforce$z <- factor(dat_ggforce$y)
+                                                                 
+dat_ggforce$y <- as.numeric(factor(dat_ggforce$y))
+
+dat_ggforce$y <- str_pad(dat_ggforce$y, 3, pad = "0")
+
+# label Names for Imputed haplogroups
+labs1 <- dat_ggforce %>% 
+  filter(x == 'haplogroup_typ') %>% 
+  arrange(y) %>% 
+  dplyr::distinct(z)
+labs1 <- as.character(labs1$z)
+
+# label Names for WGS haplogroups
+labs2 <- dat_ggforce %>% 
+  filter(x == 'haplogroup_wgs') %>% 
+  arrange(y) %>% 
+  dplyr::distinct(z)
+labs2 <- as.character(labs2$z)
+```
+
+```{r haplogorups, echo=FALSE, warning =FALSE, message=FALSE}
+ggplot(dat_ggforce, aes(x = x, id = id, split = y, value = n)) +
+  geom_parallel_sets(aes(fill = match), alpha = 0.5, axis.width = 0.2) +
+  geom_parallel_sets_labels(colour = 'black', angle = 0, label = c(labs1, labs2)) + 
+  theme_classic() + theme(legend.position = 'bottom') + 
+  theme(axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank()) + 
+  scale_x_discrete(labels=c("Typed", "WGS")) + 
+  labs(x = "Mitochondrial Haplogroups") + scale_fill_brewer(palette = 'Set1')
+```
+
+```{r haplogorups, echo=FALSE, warning =FALSE, message=FALSE}
+
+## Count pairs of haplogroups of imputed and WGS assignments
+hap.match <- MT_haps %>%
+  count(haplogroup_imp, haplogroup_wgs) %>% 
+  mutate(match = haplogroup_imp == haplogroup_wgs) 
+
+## Use ggforce to tidy data for geom_parallel Sets 
+# Requires developmental version of ggforce
+dat_ggforce <- hap.match  %>%
+  gather_set_data(1:2) %>%       
+  arrange(x,haplogroup_wgs,desc(haplogroup_imp))
+
+# Label Names for Aluvial diagram
+dat_ggforce$z <- factor(dat_ggforce$y)
+
+dat_ggforce$y <- as.numeric(factor(dat_ggforce$y))
+
+dat_ggforce$y <- str_pad(dat_ggforce$y, 3, pad = "0")
+
+# label Names for Imputed haplogroups
+labs1 <- dat_ggforce %>% 
+  filter(x == 'haplogroup_imp') %>% 
+  arrange(y) %>% 
+  dplyr::distinct(z)
+labs1 <- as.character(labs1$z)
+
+# label Names for WGS haplogroups
+labs2 <- dat_ggforce %>% 
+  filter(x == 'haplogroup_wgs') %>% 
+  arrange(y) %>% 
+  dplyr::distinct(z)
+labs2 <- as.character(labs2$z)
+```
+
+```{r haplogorups, echo=FALSE, warning =FALSE, message=FALSE}
+ggplot(dat_ggforce, aes(x = x, id = id, split = y, value = n)) +
+  geom_parallel_sets(aes(fill = match), alpha = 0.5, axis.width = 0.2) +
+  geom_parallel_sets_labels(colour = 'black', angle = 0, label = c(labs1, labs2)) + 
+  theme_classic() + theme(legend.position = 'bottom') + 
+  theme(axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank()) + 
+  scale_x_discrete(labels=c("Imputed", "WGS")) + 
+  labs(x = "Mitochondrial Haplogroups") + scale_fill_brewer(palette = 'Set1')
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
