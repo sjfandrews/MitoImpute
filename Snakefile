@@ -1,4 +1,4 @@
-'''Snakefile for MitoImpute Version 0.1'''
+'''Snakefile for Construction of Reference Panel 0.1'''
 
 configfile: "config.yaml"
 BPLINK = ["bed", "bim", "fam"]

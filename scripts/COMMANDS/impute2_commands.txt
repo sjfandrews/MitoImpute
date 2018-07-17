@@ -1,0 +1,39 @@
+impute2 \
+-chrX \
+-m /Users/sheaandrews/Dropbox/src/MitoImpute/DerivedData/ReferencePanel/MtMap.txt \
+-h /Users/sheaandrews/Dropbox/src/MitoImpute/DerivedData/ReferencePanel/ReferencePanel.hap.gz \
+-l /Users/sheaandrews/Dropbox/src/MitoImpute/DerivedData/ReferencePanel/ReferencePanel.legend.gz \
+-g /Users/sheaandrews/Dropbox/src/MitoImpute/DerivedData/ThousandGenomes/Human610-Quadv1_B-b37/chrMT_1kg_Human610-Quadv1_B-b37.gen.gz \
+-sample_g /Users/sheaandrews/Dropbox/src/MitoImpute/DerivedData/ThousandGenomes/Human610-Quadv1_B-b37/chrMT_1kg_Human610-Quadv1_B-b37.samples \
+-int 1 16569 \
+-Ne 20000 \
+-o /Users/sheaandrews/Documents/Test2/chrMT_1kg_Human610-Quadv1_B-b37
+
+
+##  Plink has trouble reading files where the chromsome is not standarded, use R to change chromsome to 26
+R
+library(tidyverse)
+imp.bim <- read_delim('/Users/sheaandrews/Documents/Test2/chrMT_1kg_Human610-Quadv1_B-b37', delim = " ", col_names = F)
+imp.bim$X1 <- '26'
+write_delim(imp.bim, '/Users/sheaandrews/Documents/Test2/chrMT_1kg_Human610-Quadv1_B-b37', col_names = F)
+q()
+n
+
+##  Use plink to convert the impute2 files to:
+# bed format
+cd /Users/sheaandrews/Dropbox/Research/PostDoc/MitoWax/2_Derived_Data/Impute/Imputed/
+plink --gen /Users/sheaandrews/Documents/Test2/chrMT_1kg_Human610-Quadv1_B-b37 \
+--sample /Users/sheaandrews/Documents/Test2/chrMT_1kg_Human610-Quadv1_B-b37_samples \
+--hard-call-threshold 0.49 --make-bed --output-chr 26 --keep-allele-order --out /Users/sheaandrews/Documents/Test2/chrMT_1kg_Human610-Quadv1_B-b37_imp
+
+# vcf format
+use.bgzip to gzip the gen file
+bcftools convert --gensample2vcf /Users/sheaandrews/Desktop/chrMT_1kg_Human610-Quadv1_B-b37 \
+-Ov -o /Users/sheaandrews/Desktop/chrMT_1kg_Human610-Quadv1_B-b37.vcf
+
+# ped format
+vcftools --vcf /Users/sheaandrews/Dropbox/src/MitoImpute/DerivedData/ThousandGenomes/chrMT_1kg_norm_decomposed_firstAlt.vcf \
+--plink --out /Users/sheaandrews/Desktop/chrMT_1kg_Human610-Quadv1_B-b37
+plink --bfile /Users/sheaandrews/Documents/Test2/chrMT_1kg_Human610-Quadv1_B-b37_imp --recode --keep-allele-order --out /Users/sheaandrews/Documents/Test2/chrMT_1kg_Human610-Quadv1_B-b37_imp
+
+awk '!($4="")' /Users/sheaandrews/Desktop/chrMT_1kg_Human610-Quadv1_B-b37

@@ -23,7 +23,7 @@ params:
   typ.vcf: '/Users/sheaandrews/Dropbox/src/MitoImpute/DerivedData/ThousandGenomes/Human610-Quadv1_B-b37/chrMT_1kg_Human610-Quadv1_B-b37.vcf.gz'
   imp.map: "/Users/sheaandrews/Documents/Test2/chrMT_1kg_Human610-Quadv1_B-b37_imp.map"
   imp.ped: "/Users/sheaandrews/Documents/Test2/chrMT_1kg_Human610-Quadv1_B-b37_imp.ped"
-  imp.vcf: '/Users/sheaandrews/Desktop/chrMT_1kg_Human610-Quadv1_B-b37.vcf'
+  imp.vcf: '/Users/sheaandrews/Documents/Test2/chrMT_1kg_Human610-Quadv1_B-b37_imp.vcf'
   imp.info: "/Users/sheaandrews/Documents/Test2/chrMT_1kg_Human610-Quadv1_B-b37_info"
 ---
 
@@ -195,7 +195,7 @@ MTtyp.classifications <- HiMC::getClassifications(typ_1kg.ped)
 
 #   Imputed 
 ## remove sites with poor info scores (< 0.3)
-rm.info <- filter(summary.stats, info > 0.8)
+rm.info <- filter(summary.stats, info > 0.3)
 imp_1kg.filtered <- imp_1kg.ped[,colnames(imp_1kg.ped) %in% c('Individual', rm.info$pos)]
 
 MTimp.classifications <- HiMC::getClassifications(imp_1kg.filtered)
@@ -209,7 +209,7 @@ MT_haps <- MTwgs.classifications %>%
 
 ### Alluvial Diagram
 
-```{r haplogorups, echo=FALSE, warning =FALSE, message=FALSE}
+```{r haplogorups2, echo=FALSE, warning =FALSE, message=FALSE}
 
 ## Count pairs of haplogroups of imputed and WGS assignments
 hap.match <- MT_haps %>%
@@ -244,19 +244,22 @@ labs2 <- dat_ggforce %>%
 labs2 <- as.character(labs2$z)
 ```
 
-```{r haplogorups, echo=FALSE, warning =FALSE, message=FALSE}
+```{r haplogorups3, echo=FALSE, warning =FALSE, message=FALSE}
 ggplot(dat_ggforce, aes(x = x, id = id, split = y, value = n)) +
   geom_parallel_sets(aes(fill = match), alpha = 0.5, axis.width = 0.2) +
-  geom_parallel_sets_labels(colour = 'black', angle = 0, label = c(labs1, labs2)) + 
+  geom_parallel_sets_labels(colour = 'black', angle = 0, label = c(labs1, labs2), size = 3) + 
   theme_classic() + theme(legend.position = 'bottom') + 
   theme(axis.title.y=element_blank(),
         axis.text.y=element_blank(),
-        axis.ticks.y=element_blank()) + 
+        axis.ticks.y=element_blank(),
+        text = element_text(size=12)) + 
   scale_x_discrete(labels=c("Typed", "WGS")) + 
   labs(x = "Mitochondrial Haplogroups") + scale_fill_brewer(palette = 'Set1')
+
+ggsave('/Users/sheaandrews/Dropbox/Research/PostDoc-MSSM/3_mitoWAX/Drafts/Figures/mtBeforeImp.pdf', units = 'in', height = 7.5, width = 7.5)
 ```
 
-```{r haplogorups, echo=FALSE, warning =FALSE, message=FALSE}
+```{r haplogorups4, echo=FALSE, warning =FALSE, message=FALSE}
 
 ## Count pairs of haplogroups of imputed and WGS assignments
 hap.match <- MT_haps %>%
@@ -291,16 +294,19 @@ labs2 <- dat_ggforce %>%
 labs2 <- as.character(labs2$z)
 ```
 
-```{r haplogorups, echo=FALSE, warning =FALSE, message=FALSE}
+```{r haplogorups5, echo=FALSE, warning =FALSE, message=FALSE}
 ggplot(dat_ggforce, aes(x = x, id = id, split = y, value = n)) +
   geom_parallel_sets(aes(fill = match), alpha = 0.5, axis.width = 0.2) +
-  geom_parallel_sets_labels(colour = 'black', angle = 0, label = c(labs1, labs2)) + 
+  geom_parallel_sets_labels(colour = 'black', angle = 0, label = c(labs1, labs2), size = 3) + 
   theme_classic() + theme(legend.position = 'bottom') + 
   theme(axis.title.y=element_blank(),
         axis.text.y=element_blank(),
-        axis.ticks.y=element_blank()) + 
+        axis.ticks.y=element_blank(),
+        text = element_text(size=12)) + 
   scale_x_discrete(labels=c("Imputed", "WGS")) + 
   labs(x = "Mitochondrial Haplogroups") + scale_fill_brewer(palette = 'Set1')
+
+ggsave('/Users/sheaandrews/Dropbox/Research/PostDoc-MSSM/3_mitoWAX/Drafts/Figures/mtAfterImp.pdf', units = 'in', height = 7.5, width = 7.5)
 ```
 
 

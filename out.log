@@ -1,0 +1,12 @@
+
+VCFtools - 0.1.15
+(C) Adam Auton and Anthony Marcketta 2009
+
+Parameters as interpreted:
+	--vcf /Users/sheaandrews/Dropbox/src/MitoImpute/DerivedData/ThousandGenomes/chrMT_1kg_norm_decomposed_firstAlt.vcf
+	--plink
+
+After filtering, kept 2534 out of 2534 Individuals
+Writing PLINK PED and MAP files ... 
+Error:  Could not open temporary file.
+
