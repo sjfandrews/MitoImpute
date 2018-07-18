@@ -38,6 +38,7 @@ rule Impute2:
         h = 'DerivedData/ReferencePanel/ReferencePanel.hap.gz',
         l = 'DerivedData/ReferencePanel/ReferencePanel.legend.gz',
         g = 'DerivedData/SamplePanel/{sample}.gen',
+        strand_g_ref = 'DerivedData/ReferencePanel/MtStrand.txt',
         sample = 'DerivedData/SamplePanel/{sample}.sample',
     output:
         'DerivedData/SamplePanel/{sample}_imputed',
@@ -45,7 +46,7 @@ rule Impute2:
     params:
         out = 'DerivedData/SamplePanel/{sample}_imputed'
     shell:
-        'impute2 -chrX -m {input.m} -h {input.h} -l {input.l} -g {input.g} \
+        'impute2 -chrX -m {input.m} -h {input.h} -l {input.l} -g {input.g} -strand_g_ref {input.strand_g_ref} \
         -sample_g {input.sample} -int 1 16569 -Ne 20000 -o {params.out}'
 
 rule FixChromName:

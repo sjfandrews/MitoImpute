@@ -9,7 +9,8 @@ rule all:
         expand("DerivedData/ReferencePanel/ReferencePanel.{ext}", ext = ['hap.gz', 'legend.gz']),
         expand("DerivedData/ReferencePanel/ReferencePanel.{ext}", ext = ['ped', 'map']),
         expand("DerivedData/ReferencePanel/ReferencePanel.{ext}", ext = ['gen.gz', 'samples']),
-        "DerivedData/ReferencePanel/MtMap.txt"
+        "DerivedData/ReferencePanel/MtMap.txt",
+        "DerivedData/ReferencePanel/MtStrand.txt"
 
 ## 1. Run the ambiguous2missing.py script to change ambiguous character states to missing data:
 rule ambiguous2missing:
@@ -212,13 +213,15 @@ rule MakeMapFile:
         "scripts/R/mt_recombination_map.R",
         "DerivedData/ReferencePanel/ReferencePanel_highQual_filtered.vcf.gz"
     output:
-        "DerivedData/ReferencePanel/MtMap.txt"
+        "DerivedData/ReferencePanel/MtMap.txt",
+        "DerivedData/ReferencePanel/MtStrand.txt"
     params:
         in_vcf = "DerivedData/ReferencePanel/ReferencePanel_highQual_filtered.vcf.gz",
         in_script = "scripts/R/mt_recombination_map.R",
-        out = "DerivedData/ReferencePanel/MtMap.txt"
+        out_map = "DerivedData/ReferencePanel/MtMap.txt",
+        out_strand = "DerivedData/ReferencePanel/MtStrand.txt"
     shell:
-        'Rscript {params.in_script} {params.in_vcf} {params.out}'
+        'Rscript {params.in_script} {params.in_vcf} {params.out_map} {params.out_strand}'
 
 
 #$ bcftools convert --haplegendsample ADNI_samples ADNI_samples.vcf.gz --sex ADNI_samples_SEX.txt
