@@ -1,0 +1,33 @@
+Steps taken to align sequences to the Easteal, Jermiin, and Ott master alignment.
+	1. Downloaded X44,299 sequences from () using the search term: (016500[SLEN]:016600[SLEN]) AND Homo[Organism] AND mitochondrion[FILT] AND complete genome NOT (Homo sp. Altai OR Denisova hominin OR neanderthalensis OR heidelbergensis OR consensus OR ancient human remains OR shotgun) by selecting 'Send to:' with the options 'Complete Record' and 'File = FASTA'
+	#DEFUNCT: 1. Downloaded 45,928 sequences from https://www.ncbi.nlm.nih.gov/nuccore/?term=(015400%5bSLEN%5d:016600%5bSLEN%5d)+AND+Homo%5bOrganism%5d+AND+mitochondrion%5bFILT%5d+NOT+(Homo+sp.+Altai+OR+Denisova+hominin+OR+neanderthalensis+OR+heidelbergensis+OR+consensus+OR+ancient+human+remains) by selecting 'Send to:' with the options 'Complete Record' and 'File = FASTA'
+	2. Imported sequence into Geneious 10.2.6
+	3. Renamed list 'MitoMap_GenBank_18July2018.fasta'
+	4. Extracted sequences from list to new sub-folder called 'Not yet aligned' by right clicking MitoMap_GenBank_18July2018.fasta list then selecting 'Extract Sequences from List...'
+	5. Made new subfolder called 'Workspace'
+	6. Moved 0_A_hsapiensCRS7k alignment into Workspace  directory
+	7. Iteratively:
+		A. Moved 2,500 sequences from Not yet aligned directory to Workspace directory
+		B. Selected most recent alignment and 2,500 sequences in Workspace directory
+		C. Selected Align/Assemble -> Multiple Align -> Consensus Align -> Create an alignment of all sequences -> MAFFT Alignment -> Default settings + Preserve original sequence order
+		D. Renamed resulting alignment '0_McInerney_Master_Alignment_July18_2018_i, where i is the ith iteration
+		F. Checked for any unusually misaligned sequences that may have been caused by different starting nucleotides. If misaligned:
+			I.	Looked for sequences in list
+			II.	Converted to circular sequence
+			III.	Searched for motif "GATCACAGGT"
+			IV.	Changed start of sequence by: Sequence -> Change residue numbering
+			V.	Noted down sequences IDs whose residue numbering was edited
+			VI.	Realign and recheck
+			VII.	If motif could not be found, even after shortening by a few nucleotides, sequence ID noted and dropped. Dropped sequences moved to subfolder called 'Dropped sequences'
+		G. Manually scanned along the rCRS (NC_012920.1) to remove any new columns (gaps) in the reference sequence. Gaps removed by selecting that column and pressing delete.
+		
+
+
+
+Dropped sequences from step 7.F:
+CM003747.1
+CM003766.1
+
+Edited sequence residue numbering:
+AM711903.1
+AM711904.1
