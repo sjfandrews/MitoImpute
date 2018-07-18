@@ -1,8 +1,12 @@
 '''Snakefile for MitoImpute Version 0.1'''
+# snakemake -s mtImpute.smk
+# snakemake -s mtImpute.smk --dag | dot -Tsvg > dag_mtImpute.svg
+
 ## SAMPLE: File name of plink files
 ## DATAIN: File path to plink files
 ## DATAOUT: File path to write files out to
-## REFDATA: File path to location of reference panel 
+## REFDATA: File path to location of reference panel
+
 SAMPLE = 'adrc_tcw1'
 DATAIN = '/Users/sheaandrews/LOAD_minerva/dummy/shea'
 DATAOUT = "DerivedData/SamplePanel"
