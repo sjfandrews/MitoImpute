@@ -1,6 +1,8 @@
 '''Snakefile for Construction of Reference Panel 0.1'''
+# snakemake -s ReferencePanel.smk
+# snakemake -s ReferencePanel.smk --dag | dot -Tsvg > dag_ReferencePanel.svg
 
-configfile: "config.yaml"
+configfile: "ReferencePanel_config.yaml"
 BPLINK = ["bed", "bim", "fam"]
 SAMPLE = config['sample']
 
