@@ -14,13 +14,13 @@ output:
 editor_options: 
   chunk_output_type: console
 params:
-  typ_map: 
-  typ_ped: 
-  imp_map: 
-  imp_ped: 
-  imp_info: 
-  info_cut: 
-  rwd:
+  typ_map: typ_map
+  typ_ped: typ_ped
+  imp_map: imp_map
+  imp_ped: imp_ped
+  imp_info: imp_info
+  info_cut: info_cut
+  rwd: rwd
 ---
 
 ```{r setup, echo=FALSE, warning =FALSE, message=FALSE}
@@ -51,18 +51,16 @@ mccr <- function (act, pred)
 
 ```
 
-
 ```{r readin, echo=FALSE, warning =FALSE, message=FALSE}
 ##  Read in - Typed only
 #     Plink .ped files 
-samp_typ.ped <- generate_snp_data(params$typ.map, params$typ.ped)
-samp_typ.vcf <- read_tsv(params$typ.vcf, comment = '##', na = c(".", "", "NA"))
+samp_typ.ped <- generate_snp_data(params$typ_map, params$typ_ped)
 
 ##  Read in - Imputed 
 #     Plink .ped files 
-samp_imp.ped <- generate_snp_data(params$imp.map, params$imp.ped) 
+samp_imp.ped <- generate_snp_data(params$imp_map, params$imp_ped) 
 samp_imp.ped <- samp_imp.ped[,-c(grep("\\<189\\>", colnames(samp_imp.ped)), grep("\\<16183\\>", colnames(samp_imp.ped)))]
-samp_imp.info <- read_delim(params$imp.info, delim = " ")
+samp_imp.info <- read_delim(params$imp_info, delim = " ")
 
 samp_imp.info <- mutate(samp_imp.info, info_comb = ifelse(info_type0 == -1, info,info_type0 ))
 
@@ -84,7 +82,7 @@ MTtyp.classifications <- HiMC::getClassifications(samp_typ.ped)
 
 #   Imputed 
 ## remove sites with poor info scores (< 0.3)
-rm.info <- filter(samp_imp.info, info > params$info.cut)
+rm.info <- filter(samp_imp.info, info > params$info_cut)
 samp_imp.filtered <- samp_imp.ped[,colnames(samp_imp.ped) %in% c('Individual', rm.info$position)]
 
 MTimp.classifications <- HiMC::getClassifications(samp_imp.filtered)
