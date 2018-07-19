@@ -26,8 +26,27 @@ git clone https://github.com/sjfandrews/MitoImpute
 ```
 
 ### Usage Overview
-To impute mitochondrial SNPs in a study dataset, : 
+To impute mitochondrial SNPs in a study dataset, run the following code:
 
 ```bash
 snakemake -s mtImpute.smk
 ```
+
+Options for the snakemake file are set in the corresponding config file ```mtImpute_config.yaml``` file. The avaliable options are:
+
+```bash
+SAMPLE: 'name of binary plink file'
+DATAIN: 'path/to/plink/file'
+DATAOUT: 'path/to/output/file'
+REFDATA: 'path/to/reference/panel'
+```
+
+The defualt options are for the example dataset.
+
+### Reference panel
+A custom reference panel for imputation can be found in the ```MitoImpute/DerivedData/ReferencePanel/``` directory. The key files consist of:
+1. -h: A file of known haplotypes ```(ReferencePanel.hap.gz)```.
+2. -l: Legend file(s) with information about the SNPs in the -h file ```(ReferencePanel.legend.gz)```
+3. -m: A fine-scale recombination map for the region to be analyzed ```(MtMap.txt)```
+
+setting REFDATA in the ```mtImpute_config.yaml``` file to ```path/to/MitoImpute/DerivedData/ReferencePanel/``` will automaticlay call these files. 

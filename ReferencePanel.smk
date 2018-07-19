@@ -20,7 +20,7 @@ rule ambiguous2missing:
         "scripts/PYTHON/ambiguous2missing.py",
         "data/ReferencePanel/McInerney_Master_Alignment_Nov30_2017.fasta",
     output:
-        "DerivedData/ReferencePanel/McInerney_Master_Alignment_Nov30_2017_ambig2missing.fasta",
+        temp("DerivedData/ReferencePanel/McInerney_Master_Alignment_Nov30_2017_ambig2missing.fasta"),
     params:
         in_fasta = "data/ReferencePanel/McInerney_Master_Alignment_Nov30_2017.fasta",
         in_script = "scripts/PYTHON/ambiguous2missing.py",
@@ -47,7 +47,7 @@ rule VcfCheck:
     input:
         "DerivedData/ReferencePanel/McInerney_Master_Alignment_Nov30_2017_ambig2missing.vcf.gz",
     output:
-        "DerivedData/ReferencePanel/Reference_panal.vcf.gz",
+        temp("DerivedData/ReferencePanel/Reference_panal.vcf.gz"),
     params:
         in_vcf = "DerivedData/ReferencePanel/McInerney_Master_Alignment_Nov30_2017_ambig2missing.vcf.gz",
         out_vcf = "DerivedData/ReferencePanel/Reference_panal.vcf.gz",
@@ -61,7 +61,7 @@ rule LowQualitySequences:
         "DerivedData/ReferencePanel/McInerney_Master_Alignment_Nov30_2017_ambig2missing.fasta",
         "scripts/R/removeLowQuality_cmdline.R",
     output:
-        "scripts/INFORMATION_LISTS/ReferencePanel_highQualitySequences.txt",
+        temp("scripts/INFORMATION_LISTS/ReferencePanel_highQualitySequences.txt"),
     params:
         in_fasta = "DerivedData/ReferencePanel/McInerney_Master_Alignment_Nov30_2017_ambig2missing.fasta",
         in_script = "scripts/R/removeLowQuality_cmdline.R",
@@ -75,7 +75,7 @@ rule RemoveNonSapiens:
         "scripts/INFORMATION_LISTS/exclusion_lists/species.exclude_MOD.txt",
         "DerivedData/ReferencePanel/Reference_panal.vcf.gz",
     output:
-        "DerivedData/ReferencePanel/ReferencePanel_Sapiens.vcf.gz",
+        temp("DerivedData/ReferencePanel/ReferencePanel_Sapiens.vcf.gz"),
     params:
         in_vcf = "DerivedData/ReferencePanel/Reference_panal.vcf.gz",
         NonSapiens = "scripts/INFORMATION_LISTS/exclusion_lists/species.exclude_MOD.txt",
@@ -90,7 +90,7 @@ rule RemoveAncients:
         "scripts/INFORMATION_LISTS/exclusion_lists/ancient.exclude_MOD.txt",
         "DerivedData/ReferencePanel/ReferencePanel_Sapiens.vcf.gz",
     output:
-        "DerivedData/ReferencePanel/ReferencePanel_NoAncients_Sapiens.vcf.gz",
+        temp("DerivedData/ReferencePanel/ReferencePanel_NoAncients_Sapiens.vcf.gz"),
     params:
         in_vcf = "DerivedData/ReferencePanel/Reference_panal.vcf.gz",
         ancients = "scripts/INFORMATION_LISTS/exclusion_lists/ancient.exclude_MOD.txt",
@@ -106,7 +106,7 @@ rule RemovePartial:
         "scripts/INFORMATION_LISTS/exclusion_lists/partial.exclude_MOD.txt",
         "DerivedData/ReferencePanel/ReferencePanel_NoAncients_Sapiens.vcf.gz",
     output:
-        "DerivedData/ReferencePanel/ReferencePanel_NoAncients_Sapiens_NoPartials.vcf.gz",
+        temp("DerivedData/ReferencePanel/ReferencePanel_NoAncients_Sapiens_NoPartials.vcf.gz"),
     params:
         in_vcf = "DerivedData/ReferencePanel/ReferencePanel_NoAncients_Sapiens.vcf.gz",
         Partial = "scripts/INFORMATION_LISTS/exclusion_lists/partial.exclude_MOD.txt",
@@ -121,7 +121,7 @@ rule RemoveLowQuality:
         "scripts/INFORMATION_LISTS/ReferencePanel_highQualitySequences.txt",
         "DerivedData/ReferencePanel/ReferencePanel_NoAncients_Sapiens_NoPartials.vcf.gz",
     output:
-        "DerivedData/ReferencePanel/ReferencePanel_highQual.vcf.gz",
+        temp("DerivedData/ReferencePanel/ReferencePanel_highQual.vcf.gz"),
     params:
         in_vcf = "DerivedData/ReferencePanel/Reference_panal.vcf.gz",
         quality = "scripts/INFORMATION_LISTS/ReferencePanel_highQualitySequences.txt",
