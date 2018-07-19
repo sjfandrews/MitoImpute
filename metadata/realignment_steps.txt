@@ -19,7 +19,12 @@ Steps taken to align sequences to the Easteal, Jermiin, and Ott master alignment
 			V.	Noted down sequences IDs whose residue numbering was edited
 			VI.	Realign and recheck
 			VII.	If motif could not be found, even after shortening by a few nucleotides, sequence ID noted and dropped. Dropped sequences moved to subfolder called 'Dropped sequences'
-		G. Manually scanned along the rCRS (NC_012920.1) to remove any new columns (gaps) in the reference sequence. Gaps removed by selecting that column and pressing delete.
+		#DEFUNCT: G. Manually scanned along the rCRS (NC_012920.1) to remove any new columns (gaps) in the reference sequence. Gaps removed by selecting that column and pressing delete.
+		G. Exported from Geneious to FASTA (Export -> FASTA sequences/alignment -> missing ends as gaps), (/Volumes/MHS/SANDBOX/)
+		H. Ran the curate_rCRS_FASTA.py script using the following command:
+		$ python ~/GitCode/MitoImpute/scripts/PYTHON/curate_rCRS_FASTA.py -f /Volumes/MHS/SANDBOX/0_McInerney_Master_Alignment_July18_2018_${i}.fasta -v
+		# WHERE ${i} is the iteration number
+		I. Resulting file (/Volumes/MHS/SANDBOX/0_McInerney_Master_Alignment_July18_2018_${i}_curated.fasta) imported into Geneious and checked.
 		
 
 
@@ -31,3 +36,4 @@ CM003766.1
 Edited sequence residue numbering:
 AM711903.1
 AM711904.1
+FJ194437.1
