@@ -1,0 +1,173 @@
+---
+title: "Mitochondrial Imputaion QC"
+author: "Shea Andrews"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    df_print: paged
+    toc: true
+    number_sections: false
+    toc_depth: 3
+    toc_float:
+      collapsed: false
+      smooth_scroll: false
+editor_options: 
+  chunk_output_type: console
+params:
+  typ_map: 
+  typ_ped: 
+  imp_map: 
+  imp_ped: 
+  imp_info: 
+  info_cut: 
+  rwd:
+---
+
+```{r setup, echo=FALSE, warning =FALSE, message=FALSE}
+knitr::opts_knit$set(root.dir = params$rwd)
+
+library(tidyverse)
+library(ggplot2)
+library(ggforce)
+library(HiMC); data(nodes)
+
+##  Function
+source('~/Dropbox/Research/PostDoc/MitoWax/3_Scripts/import_snps.R', chdir = TRUE)
+
+##  Function for calculating mathews correlation coefficent (MCC)
+# Moddifed from the mccr package
+mccr <- function (act, pred) 
+{
+  TP <- sum(act %in% 1 & pred %in% 1)
+  TN <- sum(act %in% 0 & pred %in% 0)
+  FP <- sum(act %in% 0 & pred %in% 1)
+  FN <- sum(act %in% 1 & pred %in% 0)
+  denom <- as.double(TP + FP) * (TP + FN) * (TN + FP) * (TN + FN)
+  if (any((TP + FP) == 0, (TP + FN) == 0, (TN + FP) == 0, (TN + FN) == 0)) 
+    denom <- 1
+  mcc <- ((TP * TN) - (FP * FN))/sqrt(denom)
+  return(mcc)
+}
+
+```
+
+
+```{r readin, echo=FALSE, warning =FALSE, message=FALSE}
+##  Read in - Typed only
+#     Plink .ped files 
+samp_typ.ped <- generate_snp_data(params$typ.map, params$typ.ped)
+samp_typ.vcf <- read_tsv(params$typ.vcf, comment = '##', na = c(".", "", "NA"))
+
+##  Read in - Imputed 
+#     Plink .ped files 
+samp_imp.ped <- generate_snp_data(params$imp.map, params$imp.ped) 
+samp_imp.ped <- samp_imp.ped[,-c(grep("\\<189\\>", colnames(samp_imp.ped)), grep("\\<16183\\>", colnames(samp_imp.ped)))]
+samp_imp.info <- read_delim(params$imp.info, delim = " ")
+
+samp_imp.info <- mutate(samp_imp.info, info_comb = ifelse(info_type0 == -1, info,info_type0 ))
+
+```
+
+##INFO Score
+```{r, echo=F, message = FALSE, warning=F, fig.width=7.5, fig.height=4.7, fig.align='center', fig.cap= 'Fig. 2: Concordance of Imputed SNPs'}
+
+ggplot(samp_imp.info, aes(x = position, y = info_comb, colour = as.factor(type))) + geom_point() + theme_bw() + 
+  labs(x = 'mtDNA position', y = 'Info Score', title = 'Info Score of imputed mtSNPs') + 
+  guides(colour=guide_legend(title="SNP Type")) 
+
+```
+
+##Mitochondrial Haplogroups
+```{r haplogorups, echo=FALSE, warning =FALSE, message=FALSE}
+#   Typed Only
+MTtyp.classifications <- HiMC::getClassifications(samp_typ.ped)
+
+#   Imputed 
+## remove sites with poor info scores (< 0.3)
+rm.info <- filter(samp_imp.info, info > params$info.cut)
+samp_imp.filtered <- samp_imp.ped[,colnames(samp_imp.ped) %in% c('Individual', rm.info$position)]
+
+MTimp.classifications <- HiMC::getClassifications(samp_imp.filtered)
+
+## Merge Samples
+MT_haps <- MTtyp.classifications %>% 
+  left_join(MTimp.classifications, by = 'Individual', suffix = c("_typ", "_imp")) %>% 
+  as.tibble()
+```
+
+**Table 1:** Count of haplogroups in sample
+```{r}
+as.data.frame(count(MTimp.classifications, haplogroup))
+```
+
+## Haplogroup Concordance 
+### Alluvial Diagram
+
+```{r haplogorups2, echo=FALSE, warning =FALSE, message=FALSE}
+
+## Count pairs of haplogroups of imputed and WGS assignments
+hap.match <- MT_haps %>%
+  count(haplogroup_typ, haplogroup_imp) %>% 
+  mutate(match = haplogroup_typ == haplogroup_imp) 
+
+## Use ggforce to tidy data for geom_parallel Sets 
+# Requires developmental version of ggforce
+dat_ggforce <- hap.match  %>%
+  gather_set_data(1:2) %>%       
+  arrange(x,haplogroup_imp,desc(haplogroup_typ))
+
+```
+
+```{r haplogorups3, echo=FALSE, warning =FALSE, message=FALSE}
+ggplot(dat_ggforce, aes(x = x, id = id, split = y, value = n)) +
+  geom_parallel_sets(aes(fill = match), alpha = 0.5, axis.width = 0.2) +
+  geom_parallel_sets_labels(colour = 'black', angle = 0, size = 3) + 
+  theme_classic() + theme(legend.position = 'bottom') + 
+  theme(axis.title.y=element_blank(),
+        axis.text.y=element_blank(),
+        axis.ticks.y=element_blank(),
+        text = element_text(size=12)) + 
+  scale_x_discrete(labels=c("Imputed", "Typed")) + 
+  labs(x = "Mitochondrial Haplogroups") + scale_fill_brewer(palette = 'Set1')
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -5,7 +5,7 @@
 ## DATAOUT: File path to write files out to
 ## REFDATA: File path to location of reference panel
 
-SAMPLE: 'adrc_tcw1'
-DATAIN: '/Users/sheaandrews/LOAD_minerva/dummy/shea'
-DATAOUT: "DerivedData/SamplePanel"
-REFDATA: "DerivedData/ReferencePanel"
+SAMPLE: 'ExampleSamplePanel'
+DATAIN: 'example/SamplePanel'
+DATAOUT: "example/imputed"
+REFDATA: "example/ReferencePanel"

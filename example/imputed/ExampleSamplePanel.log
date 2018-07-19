@@ -1,0 +1,28 @@
+PLINK v1.90b5.2 64-bit (9 Jan 2018)
+Options in effect:
+  --bfile example/SamplePanel//ExampleSamplePanel
+  --chr 26
+  --fam example/imputed/ExampleSamplePanel_maleOnly.fam
+  --keep-allele-order
+  --out example/imputed/ExampleSamplePanel
+  --output-chr 26
+  --recode oxford
+
+Hostname: sheas-imac.19e98.mountsinai.org
+Working directory: /Users/sheaandrews/Dropbox/src/MitoImpute
+Start time: Thu Jul 19 09:30:01 2018
+
+Random number seed: 1532007001
+32768 MB RAM detected; reserving 16384 MB for main workspace.
+121 variants loaded from .bim file.
+503 people (503 males, 0 females) loaded from .fam.
+Using 1 thread (no multithreaded calculations invoked).
+Before main variant filters, 503 founders and 0 nonfounders present.
+Calculating allele frequencies... done.
+Total genotyping rate is 0.999901.
+121 variants and 503 people pass filters and QC.
+Note: No phenotypes present.
+--recode oxford to example/imputed/ExampleSamplePanel.gen +
+example/imputed/ExampleSamplePanel.sample ... done.
+
+End time: Thu Jul 19 09:30:01 2018

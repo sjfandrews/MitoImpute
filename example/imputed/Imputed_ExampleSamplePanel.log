@@ -1,0 +1,32 @@
+PLINK v1.90b5.2 64-bit (9 Jan 2018)
+Options in effect:
+  --gen example/imputed/ExampleSamplePanel_imputed_ChromFixed
+  --hard-call-threshold 0.49
+  --keep-allele-order
+  --make-bed
+  --out example/imputed/Imputed_ExampleSamplePanel
+  --output-chr 26
+  --sample example/imputed/ExampleSamplePanel_imputed_samples
+
+Hostname: sheas-imac.19e98.mountsinai.org
+Working directory: /Users/sheaandrews/Dropbox/src/MitoImpute
+Start time: Thu Jul 19 09:31:38 2018
+
+Random number seed: 1532007098
+32768 MB RAM detected; reserving 16384 MB for main workspace.
+--data: example/imputed/Imputed_ExampleSamplePanel-temporary.bed +
+example/imputed/Imputed_ExampleSamplePanel-temporary.bim +
+example/imputed/Imputed_ExampleSamplePanel-temporary.fam written.
+436 variants loaded from .bim file.
+503 people (503 males, 0 females) loaded from .fam.
+Using 1 thread (no multithreaded calculations invoked).
+Before main variant filters, 503 founders and 0 nonfounders present.
+Calculating allele frequencies... done.
+Total genotyping rate is 0.999371.
+436 variants and 503 people pass filters and QC.
+Note: No phenotypes present.
+--make-bed to example/imputed/Imputed_ExampleSamplePanel.bed +
+example/imputed/Imputed_ExampleSamplePanel.bim +
+example/imputed/Imputed_ExampleSamplePanel.fam ... done.
+
+End time: Thu Jul 19 09:31:38 2018
