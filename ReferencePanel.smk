@@ -92,11 +92,11 @@ rule RemoveAncients:
     output:
         temp("DerivedData/ReferencePanel/ReferencePanel_NoAncients_Sapiens.vcf.gz"),
     params:
-        in_vcf = "DerivedData/ReferencePanel/Reference_panal.vcf.gz",
+        in_vcf = "DerivedData/ReferencePanel/ReferencePanel_Sapiens.vcf.gz",
         ancients = "scripts/INFORMATION_LISTS/exclusion_lists/ancient.exclude_MOD.txt",
         out_vcf = "DerivedData/ReferencePanel/ReferencePanel_NoAncients_Sapiens.vcf.gz",
     run:
-        shell('bcftools view -S ^{params.ancients} -Oz -o {params.out_vcf} {params.in_vcf}')
+        shell('bcftools view --force-samples -S ^{params.ancients} -Oz -o {params.out_vcf} {params.in_vcf}')
         shell('bcftools index {params.out_vcf}')
 
 
@@ -123,11 +123,11 @@ rule RemoveLowQuality:
     output:
         temp("DerivedData/ReferencePanel/ReferencePanel_highQual.vcf.gz"),
     params:
-        in_vcf = "DerivedData/ReferencePanel/Reference_panal.vcf.gz",
+        in_vcf = "DerivedData/ReferencePanel/ReferencePanel_NoAncients_Sapiens_NoPartials.vcf.gz",
         quality = "scripts/INFORMATION_LISTS/ReferencePanel_highQualitySequences.txt",
         out_vcf = "DerivedData/ReferencePanel/ReferencePanel_highQual.vcf.gz",
     run:
-        shell('bcftools view -S {params.quality} -Oz -o {params.out_vcf} {params.in_vcf}')
+        shell('bcftools view --force-samples -S {params.quality} -Oz -o {params.out_vcf} {params.in_vcf}')
         shell('bcftools index {params.out_vcf}')
 
 ## 5. Apply filtration criteria
@@ -150,7 +150,7 @@ rule RefSampleNames:
     output:
         "scripts/INFORMATION_LISTS/RefSampleList.txt",
     params:
-        in_vcf = "DerivedData/ReferencePanel/ReferencePanel_highQual.vcf.gz",
+        in_vcf = "DerivedData/ReferencePanel/ReferencePanel_highQual_filtered.vcf.gz",
         out_samples = "scripts/INFORMATION_LISTS/RefSampleList.txt",
     shell:
         'bcftools query -l {params.in_vcf} > {params.out_samples}'

@@ -1,5 +1,7 @@
 .DS_Store
 .snakemake/*
 data/*
-DerivedData/*
+DerivedData/SamplePanel/*
+DerivedData/test/*
+DerivedData/ThousandGenomes/*
 www.well.ox.ac.uk/*

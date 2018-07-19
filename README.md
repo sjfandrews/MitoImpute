@@ -19,6 +19,15 @@ Be sure to download and install the latest versions of the following software pa
 4. [PLINK](https://www.cog-genomics.org/plink2)
 5. [Impute2](https://mathgen.stats.ox.ac.uk/impute/impute_v2.html#download)
 
+The following R packages are also required:
+1. tidyverse
+2. ggplot2
+3. rmarkdown
+4. [Hi-MC](https://github.com/vserch/himc)
+5. [ggforce](https://github.com/thomasp85/ggforce)
+
+Note that the development versions of ggforce (required for plotting alluvial diagrams) and Hi-MC (required for mitochondrial haplogroup assignment) are required. These packages can be isntalled directly from github using devtools (see their respective pages).
+
 Once all the prerequiste software is isntalled, MitoImpute can be installed on a git-enabled machine by typeing:
 
 ```bash
@@ -49,4 +58,4 @@ A custom reference panel for imputation can be found in the ```MitoImpute/Derive
 2. -l: Legend file(s) with information about the SNPs in the -h file ```(ReferencePanel.legend.gz)```
 3. -m: A fine-scale recombination map for the region to be analyzed ```(MtMap.txt)```
 
-setting REFDATA in the ```mtImpute_config.yaml``` file to ```path/to/MitoImpute/DerivedData/ReferencePanel/``` will automaticlay call these files. 
+setting REFDATA in the ```mtImpute_config.yaml``` file to ```path/to/MitoImpute/DerivedData/ReferencePanel``` will automaticlay call these files.
