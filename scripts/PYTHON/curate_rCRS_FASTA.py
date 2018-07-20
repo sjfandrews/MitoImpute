@@ -118,7 +118,7 @@ def main():
             
     with open(outfile, 'wr') as of:
         if verbose:
-            "*\tWRITING TO FILE"
+            print "*\tWRITING TO FILE"
             for i in tqdm(range(len(seq_names))):
                 of.write(seq_names[i] + "\n")
                 of.write(seqs[i] + "\n")                

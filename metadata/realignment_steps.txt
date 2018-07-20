@@ -37,3 +37,5 @@ Edited sequence residue numbering:
 AM711903.1
 AM711904.1
 FJ194437.1
+KP698374.1
+KP702293.1
