@@ -4,16 +4,27 @@
 import os
 from snakemake.remote.FTP import RemoteProvider as FTPRemoteProvider
 
-with open('data/platforms/Mt_platforms.txt', "r") as f:
-    MtPlatforms = [x.rstrip() for x in f]
+#with open('data/platforms/Mt_platforms.txt', "r") as f:
+#    MtPlatforms = [x.rstrip() for x in f]
+MtPlatforms = ['GSA-24v1-0_A2-b37', 'Human610-Quadv1_B-b37', 'NeuroX_15036164_A-b37']
+
 FTP = FTPRemoteProvider()
+REFDATA = "example/ReferencePanel"
+RWD = os.getcwd()
 
 rule all:
     input:
         expand("DerivedData/ThousandGenomes/{MtPlatforms}/chrMT_1kg_{MtPlatforms}.{ext}", ext = ['gen.gz', 'samples'], MtPlatforms=MtPlatforms),
         expand("DerivedData/ThousandGenomes/{MtPlatforms}/chrMT_1kg_{MtPlatforms}.{ext}", ext = ['ped', 'map'], MtPlatforms=MtPlatforms),
         expand("DerivedData/ThousandGenomes/chrMT_1kg_norm_decomposed_firstAlt.{ext}", ext = ['ped', 'map']),
-        "DerivedData/ThousandGenomes/chrMT_1kg_norm_decomposed_firstAlt.vcf.gz"
+        "DerivedData/ThousandGenomes/chrMT_1kg_norm_decomposed_firstAlt.vcf.gz",
+        expand('DerivedData/ThousandGenomes/{MtPlatforms}/chrMT_1kg_{MtPlatforms}_imputed', MtPlatforms=MtPlatforms),
+        expand('DerivedData/ThousandGenomes/{MtPlatforms}/chrMT_1kg_{MtPlatforms}_imputed_samples', MtPlatforms=MtPlatforms),
+        expand("DerivedData/ThousandGenomes/{MtPlatforms}/chrMT_1kg_{MtPlatforms}_imputed.{ext}", MtPlatforms=MtPlatforms, ext = ['ped', 'map']),
+        expand("DerivedData/ThousandGenomes/{MtPlatforms}/chrMT_1kg_{MtPlatforms}_imputed.vcf", MtPlatforms=MtPlatforms),
+        expand("DerivedData/ThousandGenomes/{MtPlatforms}/chrMT_1kg_{MtPlatforms}_mtImputed_QC.html", MtPlatforms=MtPlatforms)
+
+
 
 # 1. Pull down 1000 genomes mitochondrial vcf file from ftp
 rule Get1kgMT_vcf:
@@ -61,7 +72,7 @@ rule wgs_vcf2Plink:
     params:
         out = "DerivedData/ThousandGenomes/chrMT_1kg_norm_decomposed_firstAlt"
     shell:
-        'plink --vcf {input.vcf} --recode --double-id --out {params.out}'
+        'plink --vcf {input.vcf} --recode --double-id --keep-allele-order --out {params.out}'
 
 ## 6a. Extract sample names from Reference Panel
 rule SampleNames1kg:
@@ -113,4 +124,84 @@ rule vcf2Plink:
     params:
         out = "DerivedData/ThousandGenomes/{MtPlatforms}/chrMT_1kg_{MtPlatforms}"
     shell:
-        'plink --vcf {input.vcf} --recode --double-id --out {params.out}'
+        'plink --vcf {input.vcf} --recode --double-id --keep-allele-order --out {params.out}'
+
+rule Impute2:
+    input:
+        m = expand('{RefData}/MtMap.txt', RefData=REFDATA),
+        h = expand('{RefData}/ReferencePanel.hap.gz', RefData=REFDATA),
+        l = expand('{RefData}/ReferencePanel.legend.gz', RefData=REFDATA),
+        g = "DerivedData/ThousandGenomes/{MtPlatforms}/chrMT_1kg_{MtPlatforms}.gen.gz",
+        sample = "DerivedData/ThousandGenomes/{MtPlatforms}/chrMT_1kg_{MtPlatforms}.samples",
+    output:
+        'DerivedData/ThousandGenomes/{MtPlatforms}/chrMT_1kg_{MtPlatforms}_imputed',
+        'DerivedData/ThousandGenomes/{MtPlatforms}/chrMT_1kg_{MtPlatforms}_imputed_samples'
+    params:
+        out = 'DerivedData/ThousandGenomes/{MtPlatforms}/chrMT_1kg_{MtPlatforms}_imputed'
+    shell:
+        'impute2 -chrX -m {input.m} -h {input.h} -l {input.l} -g {input.g} \
+        -sample_g {input.sample} -int 1 16569 -Ne 20000 -o {params.out}'
+
+
+rule FixChromName:
+    input:
+        InFile = 'DerivedData/ThousandGenomes/{MtPlatforms}/chrMT_1kg_{MtPlatforms}_imputed'
+    output:
+        OutFile = 'DerivedData/ThousandGenomes/{MtPlatforms}/chrMT_1kg_{MtPlatforms}_imputed_ChromFixed'
+    shell:"""
+        awk '{{$1 = "26"; print}}' {input.InFile} > {output.OutFile}
+    """
+
+rule oxford2ped:
+    input:
+        gen = 'DerivedData/ThousandGenomes/{MtPlatforms}/chrMT_1kg_{MtPlatforms}_imputed_ChromFixed',
+        sample = 'DerivedData/ThousandGenomes/{MtPlatforms}/chrMT_1kg_{MtPlatforms}_imputed_samples'
+    output:
+        expand("DerivedData/ThousandGenomes/{{MtPlatforms}}/chrMT_1kg_{{MtPlatforms}}_imputed.{ext}", ext = ['ped', 'map'])
+    params:
+        out = 'DerivedData/ThousandGenomes/{MtPlatforms}/chrMT_1kg_{MtPlatforms}_imputed'
+    shell:
+        'plink --gen {input.gen} --sample {input.sample} --hard-call-threshold 0.49 \
+        --keep-allele-order --output-chr 26 --recode --out {params.out}'
+
+rule oxford2vcf:
+    input:
+        gen = 'DerivedData/ThousandGenomes/{MtPlatforms}/chrMT_1kg_{MtPlatforms}_imputed_ChromFixed',
+        sample = 'DerivedData/ThousandGenomes/{MtPlatforms}/chrMT_1kg_{MtPlatforms}_imputed_samples'
+    output:
+        "DerivedData/ThousandGenomes/{MtPlatforms}/chrMT_1kg_{MtPlatforms}_imputed.vcf"
+    params:
+        out = 'DerivedData/ThousandGenomes/{MtPlatforms}/chrMT_1kg_{MtPlatforms}_imputed'
+    shell:
+        'plink --gen {input.gen} --sample {input.sample} --hard-call-threshold 0.49 \
+        --keep-allele-order --output-chr 26 --recode vcf --out {params.out}'
+
+rule Imputation_QC_Report:
+    input:
+        script = 'scripts/R/MT_imputation_QC.Rmd',
+        wgs_map = 'DerivedData/ThousandGenomes/chrMT_1kg_norm_decomposed_firstAlt.map',
+        wgs_ped = 'DerivedData/ThousandGenomes/chrMT_1kg_norm_decomposed_firstAlt.ped',
+        wgs_vcf = 'DerivedData/ThousandGenomes/chrMT_1kg_norm_decomposed_firstAlt.vcf.gz',
+        typ_map = "DerivedData/ThousandGenomes/{MtPlatforms}/chrMT_1kg_{MtPlatforms}.map",
+        typ_ped = "DerivedData/ThousandGenomes/{MtPlatforms}/chrMT_1kg_{MtPlatforms}.ped",
+        typ_vcf = 'DerivedData/ThousandGenomes/{MtPlatforms}/chrMT_1kg_{MtPlatforms}.vcf.gz',
+        imp_map = 'DerivedData/ThousandGenomes/{MtPlatforms}/chrMT_1kg_{MtPlatforms}_imputed.map',
+        imp_ped = 'DerivedData/ThousandGenomes/{MtPlatforms}/chrMT_1kg_{MtPlatforms}_imputed.ped',
+        imp_vcf = 'DerivedData/ThousandGenomes/{MtPlatforms}/chrMT_1kg_{MtPlatforms}_imputed.vcf',
+        imp_info = 'DerivedData/ThousandGenomes/{MtPlatforms}/chrMT_1kg_{MtPlatforms}_imputed_info',
+    output:
+        "DerivedData/ThousandGenomes/{MtPlatforms}/chrMT_1kg_{MtPlatforms}_mtImputed_QC.html"
+    params:
+        rwd = RWD,
+        output_dir = "DerivedData/ThousandGenomes/{MtPlatforms}/",
+        info_cut = '0'
+
+    shell:
+        "R -e 'rmarkdown::render("
+        """"{input.script}", output_file = "{output}", output_dir = "{params.output_dir}", \
+params = list(rwd = "{params.rwd}", info.cut = "{params.info_cut}", \
+wgs.map = "{input.wgs_map}", wgs.ped = "{input.wgs_ped}", wgs.vcf = "{input.wgs_vcf}", \
+typ.map = "{input.typ_map}", typ.ped = "{input.typ_ped}", typ.vcf = "{input.typ_vcf}", \
+imp.map = "{input.imp_map}", imp.ped = "{input.imp_ped}", imp.vcf= "{input.imp_vcf}", \
+imp.info = "{input.imp_info}"))' --slave
+        """

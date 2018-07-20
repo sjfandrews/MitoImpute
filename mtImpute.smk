@@ -2,6 +2,8 @@
 # snakemake -s mtImpute.smk
 # snakemake -s mtImpute.smk --dag | dot -Tsvg > dag_mtImpute.svg
 
+import os
+
 configfile: 'mtImpute_config.yaml'
 SAMPLE = config['SAMPLE']
 DATAIN = config['DATAIN']

@@ -51,6 +51,11 @@ mccr <- function (act, pred)
 
 ```
 
+```{}
+himc <- tibble(pos = c(825, 1018, 1438, 1719, 1736, 2092, 3505, 3552, 3594, 4580, 4769, 4917, 4977, 5178, 5442, 6371, 7028, 8251, 8414, 8468, 8703, 9042, 9055, 9347, 9950, 10115, 10398, 10398, 10400, 10550, 11177, 11251, 11947, 12007, 12308, 12705, 13263, 13368, 13506, 13708, 13789, 14178, 14318, 14470, 14560, 14668, 14766, 15043, 15326, 15452, 15535, 16111, 16189, 16391), 
+
+```
+
 ```{r readin, echo=FALSE, warning =FALSE, message=FALSE}
 ##  Read in - Typed only
 #     Plink .ped files 
@@ -63,13 +68,13 @@ samp_imp.ped <- samp_imp.ped[,-c(grep("\\<189\\>", colnames(samp_imp.ped)), grep
 samp_imp.info <- read_delim(params$imp_info, delim = " ")
 
 samp_imp.info <- mutate(samp_imp.info, info_comb = ifelse(info_type0 == -1, info,info_type0 ))
-
+samp_imp.info <- mutate(samp_imp.info, himc = ifelse(position %in% c(825, 1018, 1438, 1719, 1736, 2092, 3505, 3552, 3594, 4580, 4769, 4917, 4977, 5178, 5442, 6371, 7028, 8251, 8414, 8468, 8703, 9042, 9055, 9347, 9950, 10115, 10398, 10398, 10400, 10550, 11177, 11251, 11947, 12007, 12308, 12705, 13263, 13368, 13506, 13708, 13789, 14178, 14318, 14470, 14560, 14668, 14766, 15043, 15326, 15452, 15535, 16111, 16189, 16391), 'yes', 'no'))
 ```
 
 ##INFO Score
 ```{r, echo=F, message = FALSE, warning=F, fig.width=7.5, fig.height=4.7, fig.align='center', fig.cap= 'Fig. 2: Concordance of Imputed SNPs'}
 
-ggplot(samp_imp.info, aes(x = position, y = info_comb, colour = as.factor(type))) + geom_point() + theme_bw() + 
+ggplot(samp_imp.info, aes(x = position, y = info_comb, colour = as.factor(type), shape = himc, alpha = himc)) + geom_point() + theme_bw() + 
   labs(x = 'mtDNA position', y = 'Info Score', title = 'Info Score of imputed mtSNPs') + 
   guides(colour=guide_legend(title="SNP Type")) 
 
