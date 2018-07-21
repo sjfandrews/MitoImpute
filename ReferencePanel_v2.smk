@@ -18,6 +18,8 @@ rule ambiguous2missing:
         in_script = "scripts/PYTHON/ambiguous2missing.py",
         out = "/g/data1a/te53/MitoImpute/data/FASTA/ambiguous2missing/McInerney_Master_Alignment_July18_2018_ambig2missing.fasta"
     shell:
+        'TEST={params.out}'
+        'echo $TEST'
         'python {params.in_script} -i {params.in_fasta} -o {params.out} -v'
         
 ## 2. Run the fasta2vcf_mtDNA.py script
