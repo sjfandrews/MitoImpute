@@ -18,13 +18,13 @@ rule all:
 rule ambiguous2missing:
     input:
         "scripts/PYTHON/ambiguous2missing.py",
-        "data/McInerney_Master_Alignment_July18_2018.fasta",
+        "data/ReferencePanel_v2/McInerney_Master_Alignment_July18_2018.fasta",
     output:
-        temp("DerivedData/ReferencePanel/McInerney_Master_Alignment_July18_2018_ambig2missing.fasta"),
+        temp("DerivedData/ReferencePanel_v2/McInerney_Master_Alignment_July18_2018_ambig2missing.fasta"),
     params:
-        in_fasta = "data/ReferencePanel/McInerney_Master_Alignment_July18_2018.fasta",
+        in_fasta = "data/ReferencePanel_v2/McInerney_Master_Alignment_July18_2018.fasta",
         in_script = "scripts/PYTHON/ambiguous2missing.py",
-        out = "DerivedData/ReferencePanel/McInerney_Master_Alignment_July18_2018_ambig2missing.fasta"
+        out = "DerivedData/ReferencePanel_v2/McInerney_Master_Alignment_July18_2018_ambig2missing.fasta"
     shell:
         'python {params.in_script} -i {params.in_fasta} -o {params.out} -v'
 
