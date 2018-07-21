@@ -18,13 +18,13 @@ rule ambiguous2missing:
         in_script = "scripts/PYTHON/ambiguous2missing.py",
         out = "/g/data1a/te53/MitoImpute/data/FASTA/ambiguous2missing/McInerney_Master_Alignment_July18_2018_ambig2missing.fasta"
     shell:
-        'if [ -f {params.out} ]
+        if [ -f {params.out} ]
         then
-        	echo "FOUND... PASSING"
+        	'echo "FOUND... PASSING"'
         else
-        	python {params.in_script} -i {params.in_fasta} -o {params.out} -v
+        	'python {params.in_script} -i {params.in_fasta} -o {params.out} -v'
         fi
-        '
+        
         
 ## 2. Run the fasta2vcf_mtDNA.py script
 rule fasta2vcf:
