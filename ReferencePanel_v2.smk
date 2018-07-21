@@ -6,14 +6,6 @@ configfile: "ReferencePanel_config.yaml"
 BPLINK = ["bed", "bim", "fam"]
 SAMPLE = config['sample']
 
-rule all:
-    input:
-        expand("DerivedData/ReferencePanel_v2/ReferencePanel.{ext}", ext = ['hap.gz', 'legend.gz']),
-        expand("DerivedData/ReferencePanel_v2/ReferencePanel.{ext}", ext = ['ped', 'map']),
-        expand("DerivedData/ReferencePanel_v2/ReferencePanel.{ext}", ext = ['gen.gz', 'samples']),
-        "DerivedData/ReferencePanel_v2/MtMap.txt",
-        "DerivedData/ReferencePanel_v2/MtStrand.txt"
-
 ## 1. Run the ambiguous2missing.py script to change ambiguous character states to missing data:
 rule ambiguous2missing:
     input:
