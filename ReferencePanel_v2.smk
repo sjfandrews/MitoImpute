@@ -8,11 +8,11 @@ SAMPLE = config['sample']
 
 rule all:
     input:
-        expand("DerivedData/ReferencePanel/ReferencePanel.{ext}", ext = ['hap.gz', 'legend.gz']),
-        expand("DerivedData/ReferencePanel/ReferencePanel.{ext}", ext = ['ped', 'map']),
-        expand("DerivedData/ReferencePanel/ReferencePanel.{ext}", ext = ['gen.gz', 'samples']),
-        "DerivedData/ReferencePanel/MtMap.txt",
-        "DerivedData/ReferencePanel/MtStrand.txt"
+        expand("DerivedData/ReferencePanel_v2/ReferencePanel.{ext}", ext = ['hap.gz', 'legend.gz']),
+        expand("DerivedData/ReferencePanel_v2/ReferencePanel.{ext}", ext = ['ped', 'map']),
+        expand("DerivedData/ReferencePanel_v2/ReferencePanel.{ext}", ext = ['gen.gz', 'samples']),
+        "DerivedData/ReferencePanel_v2/MtMap.txt",
+        "DerivedData/ReferencePanel_v2/MtStrand.txt"
 
 ## 1. Run the ambiguous2missing.py script to change ambiguous character states to missing data:
 rule ambiguous2missing:
@@ -28,3 +28,4 @@ rule ambiguous2missing:
     shell:
         'python {params.in_script} -i {params.in_fasta} -o {params.out} -v'
 
+#$ <FILL THIS OUT ONCE COMMAND-LINE VERSIONS ARE WRITTEN>
