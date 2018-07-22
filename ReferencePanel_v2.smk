@@ -36,7 +36,7 @@ rule fasta2vcf:
     output:
         "/g/data1a/te53/MitoImpute/data/VCF/McInerney_Master_Alignment_July18_2018_ambig2missing.vcf.gz"
     params:
-        in_fasta = "DerivedData/ReferencePanel/McInerney_Master_Alignment_July18_2018_ambig2missing.fasta",
+        in_fasta = "/g/data1a/te53/MitoImpute/data/FASTA/ambiguous2missing/McInerney_Master_Alignment_July18_2018_ambig2missing.fasta",
         in_script = "scripts/PYTHON/fasta2vcf_mtDNA.py",
         out = "/g/data1a/te53/MitoImpute/data/VCF/McInerney_Master_Alignment_July18_2018_ambig2missing.vcf.gz"
     shell:
