@@ -61,7 +61,7 @@ rule LowQualitySequences:
         "/g/data1a/te53/MitoImpute/data/FASTA/ambiguous2missing/McInerney_Master_Alignment_July18_2018_ambig2missing.fasta",
         "scripts/R/removeLowQuality_cmdline.R",
     output:
-        temp("scripts/INFORMATION_LISTS/ReferencePanel_highQualitySequences.txt"),
+        temp("/g/data1a/te53/MitoImpute/metadata/Reference_panel_v2_highQualitySequences.txt"),
     params:
         in_fasta = "/g/data1a/te53/MitoImpute/data/FASTA/ambiguous2missing/McInerney_Master_Alignment_July18_2018_ambig2missing.fasta",
         in_script = "scripts/R/removeLowQuality_cmdline.R",
