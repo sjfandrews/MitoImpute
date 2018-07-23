@@ -19,5 +19,5 @@ REF_FILE="${REF_DIR}Reference_panel_v2"
 ADNI_FILE="${REF_DIR}ADNI_samples"
 
 echo "COMMAND RUN:"
-echo impute2 -chrX -m ${REF_FILE}.map -h ${REF_FILE}.hap.gz -l ${REF_FILE}.legend.gz -g ${ADNI_FILE}.gen.gz -sample_g ${ADNI_FILE}.samples -int 1 16569 -Ne 20000 -o ${ADNI_FILE}_IMPUTED
+echo impute2 -chrX -m ${REF_FILE}_MtMap.txt -h ${REF_FILE}.hap.gz -l ${REF_FILE}.legend.gz -g ${ADNI_FILE}.gen.gz -sample_g ${ADNI_FILE}.samples -int 1 16569 -Ne 20000 -o ${ADNI_FILE}_IMPUTED
 impute2 -chrX -m ${REF_FILE}.map -h ${REF_FILE}.hap.gz -l ${REF_FILE}.legend.gz -g ${ADNI_FILE}.gen.gz -sample_g ${ADNI_FILE}.samples -int 1 16569 -Ne 20000 -o ${ADNI_FILE}_IMPUTED
