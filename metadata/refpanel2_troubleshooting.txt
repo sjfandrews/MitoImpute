@@ -1,0 +1,41 @@
+COMMANDS RAN:
+
+# CONVERT AMBIGUOUS CHARACTER STATES TO MISSING
+python ~/GitCode/MitoImpute/scripts/PYTHON/ambiguous2missing.py -i /Volumes/MHS/MitoImpute/data/FASTA/masters/McInerney_Master_Alignment_July18_2018.fasta -o /Volumes/MHS/MitoImpute/data/FASTA/ambiguous2missing/McInerney_Master_Alignment_July18_2018_ambig2missing.fasta -v
+
+# CONVERT FASTA TO VCF
+python ~/GitCode/MitoImpute/scripts/PYTHON/fasta2vcf_mtDNA.py -i /Volumes/MHS/MitoImpute/data/FASTA/ambiguous2missing/McInerney_Master_Alignment_July18_2018_ambig2missing.fasta -o /Volumes/MHS/MitoImpute/data/VCF/McInerney_Master_Alignment_July18_2018_ambig2missing.vcf.gz -v
+
+# RUN THE VCF THROUGH BCFTOOLS TO VALIDATE ITS FORMAT
+bcftools view -Oz -o /Volumes/MHS/MitoImpute/data/VCF/Reference_Panel_v2.vcf.gz /Volumes/MHS/MitoImpute/data/VCF/McInerney_Master_Alignment_July18_2018_ambig2missing.vcf.gz
+bcftools index /Volumes/MHS/MitoImpute/data/VCF/Reference_Panel_v2.vcf.gz
+
+# REMOVE LOW QUALITY SEQUENCES
+Rscript ~/GitCode/MitoImpute/scripts/R/removeLowQuality_cmdline.R /Volumes/MHS/MitoImpute/data/FASTA/ambiguous2missing/McInerney_Master_Alignment_July18_2018_ambig2missing.fasta /Volumes/MHS/MitoImpute/metadata/McInerney_Master_Alignment_July18_2018_ambig2missing_highQual.txt
+bcftools view -S /Volumes/MHS/MitoImpute/metadata/McInerney_Master_Alignment_July18_2018_ambig2missing_highQual.txt -Oz -o /Volumes/MHS/MitoImpute/data/VCF/Reference_Panel_v2_highQual.vcf.gz /Volumes/MHS/MitoImpute/data/VCF/Reference_Panel_v2.vcf.gz
+bcftools index /Volumes/MHS/MitoImpute/data/VCF/Reference_Panel_v2_highQual.vcf.gz
+
+# APPLY SITE FILTRATION CRITERIA
+vt decompose /Volumes/MHS/MitoImpute/data/VCF/Reference_Panel_v2_highQual.vcf.gz | bcftools +fill-tags | bcftools view -i \'ALT!="-"\' | bcftools view -q 0.01 -Q 0.99 | bcftools view -Oz -o /Volumes/MHS/MitoImpute/data/VCF/Reference_Panel_v2_highQual_filtered.vcf.gz
+bcftools index /Volumes/MHS/MitoImpute/data/VCF/Reference_Panel_v2_highQual_filtered.vcf.gz
+
+# EXTRACT SAMPLE LIST
+bcftools query -l /Volumes/MHS/MitoImpute/data/VCF/Reference_Panel_v2_highQual_filtered.vcf.gz > /Volumes/MHS/MitoImpute/metadata/Reference_Panel_v2_highQual_filtered_sampleList.txt
+
+# ADD SEX LABEL
+Rscript ~/GitCode/MitoImpute/scripts/R/assign_sex_label.R /Volumes/MHS/MitoImpute/metadata/Reference_Panel_v2_highQual_filtered_sampleList.txt /Volumes/MHS/MitoImpute/metadata/Reference_Panel_v2_highQual_filtered_sampleList_sex.txt
+
+# CONVERT TO OXFORD FORMAT
+bcftools convert --haplegendsample /Volumes/MHS/MitoImpute/data/OXFORD/Reference_Panel_v2 --sex /Volumes/MHS/MitoImpute/metadata/Reference_Panel_v2_highQual_filtered_sampleList_sex.txt /Volumes/MHS/MitoImpute/data/VCF/Reference_Panel_v2_highQual_filtered.vcf.gz
+
+# CONVERT TO PLINK FORMAT
+plink1.9 --vcf /Volumes/MHS/MitoImpute/data/VCF/Reference_Panel_v2_highQual_filtered.vcf.gz --recode --double-id --keep-allele-order --out /Volumes/MHS/MitoImpute/data/PLINK/Reference_Panel_v2
+
+# CONVERT TO GEN and SAMPLE FORMAT
+bcftools convert --gensample /Volumes/MHS/MitoImpute/data/OXFORD/Reference_Panel_v2 --sex /Volumes/MHS/MitoImpute/metadata/Reference_Panel_v2_highQual_filtered_sampleList_sex.txt /Volumes/MHS/MitoImpute/data/VCF/Reference_Panel_v2_highQual_filtered.vcf.gz
+
+# MAKE MAP AND STRAND FILES
+Rscript ~/GitCode/MitoImpute/scripts/R/mt_recombination_map.R /Volumes/MHS/MitoImpute/data/VCF/Reference_Panel_v2_highQual_filtered.vcf.gz /Volumes/MHS/MitoImpute/data/REF_PANEL/Reference_panel_v2_MtMap.txt /Volumes/MHS/MitoImpute/data/REF_PANEL/Reference_panel_v2_MtStrand.txt
+
+# RUN IMPUTE2
+impute2 -chrX -m /Volumes/MHS/MitoImpute/data/REF_PANEL/Reference_panel_v2_MtMap.txt -h /Volumes/MHS/MitoImpute/data/OXFORD/Reference_Panel_v2.hap.gz -l /Volumes/MHS/MitoImpute/data/OXFORD/Reference_Panel_v2.legend.gz -g /Volumes/MHS/MitoImpute/data/OXFORD/ADNI_samples.gen.gz -sample_g /Volumes/MHS/MitoImpute/data/OXFORD/ADNI_samples.samples -int 1 16569 -Ne 20000 -o /Volumes/MHS/MitoImpute/data/IMPUTE2/ADNI_samples_TEST2

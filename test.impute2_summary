@@ -1,0 +1,14 @@
+
+======================
+ IMPUTE version 2.3.2 
+======================
+
+Copyright 2008 Bryan Howie, Peter Donnelly, and Jonathan Marchini
+Please see the LICENCE file included with this program for conditions of use.
+
+The seed for the random number generator is 1027436773.
+
+Command-line input: impute2
+
+ERROR: You must specify a valid interval for imputation using the -int argument.
+
