@@ -64,10 +64,10 @@ out=/g/data1a/te53/MitoImpute/data/STRANDS/${MtPlatforms}/chrMT_1kg_${MtPlatform
 
 if [ -f ${out} ]
 then
-	echo "$ {out} FOUND! ... PASSING"
+	echo "${out} FOUND! ... PASSING"
 else
-	echo "$ {out} NOT FOUND! ... RUNNING IMPUTE2"
-	echo impute2 -chrX -m ${m} -h ${h} -l ${l} -g ${g} -sample_g ${s} -int 1 16569 -Ne 20000 -o ${out}
+	echo "${out} NOT FOUND! ... RUNNING IMPUTE2"
+	impute2 -chrX -m ${m} -h ${h} -l ${l} -g ${g} -sample_g ${s} -int 1 16569 -Ne 20000 -o ${out}
 fi
 
 # FIX CHROMOSOME NAMES
