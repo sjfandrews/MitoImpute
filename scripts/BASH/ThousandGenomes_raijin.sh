@@ -11,10 +11,15 @@
 #PBS -o /g/data1a/te53/MitoImpute/logs/
 
 # LOAD THE MODULE
+module unload intel-fc intel-cc
+module load intel-fc/16.0.3.210
+module load intel-cc/16.0.3.210
+module load Rpackages/3.4.3
 module load bcftools/1.8
 module load plink/1.9
 module load impute2/2.3.2
 echo
+echo "LOADED R v3.4.3"
 echo "LOADED bcftools v1.8"
 echo "LOADED plink v1.9"
 echo "LOADED IMPUTE2 v2.3.2"
@@ -57,21 +62,16 @@ g=/g/data1a/te53/MitoImpute/data/STRANDS/${MtPlatforms}/chrMT_1kg_${MtPlatforms}
 s=/g/data1a/te53/MitoImpute/data/STRANDS/${MtPlatforms}/chrMT_1kg_${MtPlatforms}.samples
 out=/g/data1a/te53/MitoImpute/data/STRANDS/${MtPlatforms}/chrMT_1kg_${MtPlatforms}_imputed
 
-impute2 -chrX -m ${m} -h ${h} -l ${l} -g ${g} -sample_g ${s} -int 1 16569 -Ne 20000 -o ${out}
+if [ -f ${out} ]
+then
+	echo "$ {out} FOUND! ... PASSING"
+else
+	echo "$ {out} NOT FOUND! ... RUNNING IMPUTE2"
+	echo impute2 -chrX -m ${m} -h ${h} -l ${l} -g ${g} -sample_g ${s} -int 1 16569 -Ne 20000 -o ${out}
+fi
 
-#rule Impute2:
-#    input:
-#        m = expand('{RefData}/MtMap.txt', RefData=REFDATA),
-#        h = expand('{RefData}/ReferencePanel.hap.gz', RefData=REFDATA),
-#        l = expand('{RefData}/ReferencePanel.legend.gz', RefData=REFDATA),
-#        g = "DerivedData/ThousandGenomes/{MtPlatforms}/chrMT_1kg_{MtPlatforms}.gen.gz",
-#        sample = "DerivedData/ThousandGenomes/{MtPlatforms}/chrMT_1kg_{MtPlatforms}.samples",
-#    output:
-#        'DerivedData/ThousandGenomes/{MtPlatforms}/chrMT_1kg_{MtPlatforms}_imputed',
-#        'DerivedData/ThousandGenomes/{MtPlatforms}/chrMT_1kg_{MtPlatforms}_imputed_samples'
-#    params:
-#        out = 'DerivedData/ThousandGenomes/{MtPlatforms}/chrMT_1kg_{MtPlatforms}_imputed'
-#    shell:
-#        'impute2 -chrX -m {input.m} -h {input.h} -l {input.l} -g {input.g} \
-#        -sample_g {input.sample} -int 1 16569 -Ne 20000 -o {params.out}'
-#REFDATA = "example/ReferencePanel"
+# FIX CHROMOSOME NAMES
+echo
+echo "FIXING CHROMOSOME NAMES"
+InFile=~/GitCode/MitoImpute/DerivedData/ThousandGenomes/${MtPlatforms}/chrMT_1kg_${MtPlatforms}_imputed
+OutFile=~/GitCode/MitoImpute/DerivedData/ThousandGenomes/${MtPlatforms}/chrMT_1kg_${MtPlatforms}_imputed_ChromFixed
