@@ -3,6 +3,8 @@
 # LOAD MODULE FILES
 module load bcftools/1.8
 module load plink/1.9
+echo "LOADED bcftools v1.8"
+echo "LOADED plink v1.9"
 
 # EXTRACT PLATFORM SNPs
 echo "EXTRACTING PLATFORM SNPs"
@@ -21,7 +23,7 @@ sex=~/GitCode/MitoImpute/DerivedData/ThousandGenomes/SampleList1kg_sex.txt
 out=/g/data1a/te53/MitoImpute/data/STRANDS/${MtPlatforms}/chrMT_1kg_${MtPlatforms}
 
 bcftools convert --gensample ${out} ${vcf} --sex ${sex}
-Rscript ~/GitCode/MitoImpute/scripts/R/FixSamplesFile.R ${out}.samples
+Rscript ~/GitCode/MitoImpute/scripts/R/FixSamplesFile_raijin.R ${out}.samples
 
 # GENERATE PLINK FILES
 echo "GENERATING PLINK FILES"
