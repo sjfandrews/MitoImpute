@@ -18,3 +18,37 @@ out=~/GitCode/MitoImpute/DerivedData/ThousandGenomes/${MtPlatforms}/chrMT_1kg_${
 
 bcftools convert --gensample ${out} ${vcf} --sex ${sex}
 Rscript ~/GitCode/MitoImpute/scripts/R/FixSamplesFile.R ${out}.samples
+
+# GENERATE PLINK FILES
+echo "GENERATING PLINK FILES"
+out=~/GitCode/MitoImpute/DerivedData/ThousandGenomes/${MtPlatforms}/chrMT_1kg_${MtPlatforms}
+
+plink1.9 --vcf ${vcf} --recode --double-id --keep-allele-order --out ${out}
+
+# RUN IMPUTE2
+echo "RUNNING IMPUTE2 ON ${MtPlatforms}"
+m=/Volumes/MHS/MitoImpute/data/REF_PANEL/Reference_panel_v2_MtMap.txt 
+h=/Volumes/MHS/MitoImpute/data/OXFORD/Reference_Panel_v2.hap.gz
+l=/Volumes/MHS/MitoImpute/data/OXFORD/Reference_Panel_v2.legend.gz
+g=~/GitCode/MitoImpute/DerivedData/ThousandGenomes/${MtPlatforms}/chrMT_1kg_${MtPlatforms}.gen.gz
+s=~/GitCode/MitoImpute/DerivedData/ThousandGenomes/${MtPlatforms}/chrMT_1kg_${MtPlatforms}.samples
+out=~/GitCode/MitoImpute/DerivedData/ThousandGenomes/${MtPlatforms}/chrMT_1kg_${MtPlatforms}_imputed
+
+impute2 -chrX -m ${m} -h ${h} -l ${l} -g ${g} -sample_g ${s} -int 1 16569 -Ne 20000 -o ${out}
+
+#rule Impute2:
+#    input:
+#        m = expand('{RefData}/MtMap.txt', RefData=REFDATA),
+#        h = expand('{RefData}/ReferencePanel.hap.gz', RefData=REFDATA),
+#        l = expand('{RefData}/ReferencePanel.legend.gz', RefData=REFDATA),
+#        g = "DerivedData/ThousandGenomes/{MtPlatforms}/chrMT_1kg_{MtPlatforms}.gen.gz",
+#        sample = "DerivedData/ThousandGenomes/{MtPlatforms}/chrMT_1kg_{MtPlatforms}.samples",
+#    output:
+#        'DerivedData/ThousandGenomes/{MtPlatforms}/chrMT_1kg_{MtPlatforms}_imputed',
+#        'DerivedData/ThousandGenomes/{MtPlatforms}/chrMT_1kg_{MtPlatforms}_imputed_samples'
+#    params:
+#        out = 'DerivedData/ThousandGenomes/{MtPlatforms}/chrMT_1kg_{MtPlatforms}_imputed'
+#    shell:
+#        'impute2 -chrX -m {input.m} -h {input.h} -l {input.l} -g {input.g} \
+#        -sample_g {input.sample} -int 1 16569 -Ne 20000 -o {params.out}'
+#REFDATA = "example/ReferencePanel"
