@@ -1,7 +1,7 @@
 #!/bin/bash
 #PBS -P te53
-#PBS -q normalbw
-#PBS -l walltime=12:00:00
+#PBS -q normal
+#PBS -l walltime=48:00:00
 #PBS -l mem=32GB
 #PBS -l ncpus=1
 #PBS -N impute_SNPchip_1kGP
@@ -73,5 +73,44 @@ fi
 # FIX CHROMOSOME NAMES
 echo
 echo "FIXING CHROMOSOME NAMES"
-InFile=~/GitCode/MitoImpute/DerivedData/ThousandGenomes/${MtPlatforms}/chrMT_1kg_${MtPlatforms}_imputed
-OutFile=~/GitCode/MitoImpute/DerivedData/ThousandGenomes/${MtPlatforms}/chrMT_1kg_${MtPlatforms}_imputed_ChromFixed
+InFile=/g/data1a/te53/MitoImpute/data/STRANDS/${MtPlatforms}/chrMT_1kg_${MtPlatforms}_imputed
+OutFile=/g/data1a/te53/MitoImpute/data/STRANDS/${MtPlatforms}/chrMT_1kg_${MtPlatforms}_imputed_ChromFixed
+awk '{{$1 = "26"; print}}' ${InFile} > ${OutFile}
+
+# CONVERT OXFORD TO PEDIGREE
+echo
+echo "CONVERTING OXFORD TO PEDIGREE"
+gen=/g/data1a/te53/MitoImpute/data/STRANDS/${MtPlatforms}/chrMT_1kg_${MtPlatforms}_imputed_ChromFixed
+sam=/g/data1a/te53/MitoImpute/data/STRANDS/${MtPlatforms}/chrMT_1kg_${MtPlatforms}_imputed_samples
+out=/g/data1a/te53/MitoImpute/data/STRANDS/${MtPlatforms}/chrMT_1kg_${MtPlatforms}_imputed
+
+plink1.9 --gen ${gen} --sample ${sam} --hard-call-threshold 0.49 --keep-allele-order --output-chr 26 --recode --out ${out}
+
+# CONVERT OXFORD TO VCF
+echo
+echo "CONVERTING OXFORD TO VCF"
+gen=/g/data1a/te53/MitoImpute/data/STRANDS/${MtPlatforms}/chrMT_1kg_${MtPlatforms}_imputed_ChromFixed
+sam=/g/data1a/te53/MitoImpute/data/STRANDS/${MtPlatforms}/chrMT_1kg_${MtPlatforms}_imputed_samples
+out=/g/data1a/te53/MitoImpute/data/STRANDS/${MtPlatforms}/chrMT_1kg_${MtPlatforms}_imputed
+
+plink1.9 --gen ${gen} --sample ${sam} --hard-call-threshold 0.49 --keep-allele-order --output-chr 26 --recode vcf --out ${out}
+
+
+# GENERATE QC REPORT
+echo
+echo "GENERATING QC REPORT"
+s=~/GitCode/MitoImpute/scripts/R/MT_imputation_QC.Rmd
+wgs_map=~/GitCode/MitoImpute/DerivedData/ThousandGenomes/chrMT_1kg_norm_decomposed_firstAlt.map
+wgs_ped=~/GitCode/MitoImpute/DerivedData/ThousandGenomes/chrMT_1kg_norm_decomposed_firstAlt.ped
+wgs_vcf=~/GitCode/MitoImpute/DerivedData/ThousandGenomes/chrMT_1kg_norm_decomposed_firstAlt.vcf.gz
+typ_map=/g/data1a/te53/MitoImpute/data/STRANDS/${MtPlatforms}/chrMT_1kg_${MtPlatforms}.map
+typ_ped=/g/data1a/te53/MitoImpute/data/STRANDS/${MtPlatforms}/chrMT_1kg_${MtPlatforms}.ped
+typ_vcf=/g/data1a/te53/MitoImpute/data/STRANDS/${MtPlatforms}/chrMT_1kg_${MtPlatforms}.vcf.gz
+imp_map=/g/data1a/te53/MitoImpute/data/STRANDS/${MtPlatforms}/chrMT_1kg_${MtPlatforms}_imputed.map
+imp_ped=/g/data1a/te53/MitoImpute/data/STRANDS/${MtPlatforms}/chrMT_1kg_${MtPlatforms}_imputed.ped
+imp_vcf=/g/data1a/te53/MitoImpute/data/STRANDS/${MtPlatforms}/chrMT_1kg_${MtPlatforms}_imputed.vcf
+imp_info=/g/data1a/te53/MitoImpute/data/STRANDS/${MtPlatforms}/chrMT_1kg_${MtPlatforms}_imputed_info
+
+rwd = `pwd`/
+output_dir=~/GitCode/MitoImpute/DerivedData/ThousandGenomes/${MtPlatforms}/
+info_cut='0'

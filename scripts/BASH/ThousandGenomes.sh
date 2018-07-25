@@ -40,9 +40,9 @@ out=~/GitCode/MitoImpute/DerivedData/ThousandGenomes/${MtPlatforms}/chrMT_1kg_${
 
 if [ -f ${out} ]
 then
-	echo "$ {out} FOUND! ... PASSING"
+	echo "${out} FOUND! ... PASSING"
 else
-	echo "$ {out} NOT FOUND! ... RUNNING IMPUTE2"
+	echo "${out} NOT FOUND! ... RUNNING IMPUTE2"
 	echo impute2 -chrX -m ${m} -h ${h} -l ${l} -g ${g} -sample_g ${s} -int 1 16569 -Ne 20000 -o ${out}
 fi
 
@@ -51,3 +51,43 @@ echo
 echo "FIXING CHROMOSOME NAMES"
 InFile=~/GitCode/MitoImpute/DerivedData/ThousandGenomes/${MtPlatforms}/chrMT_1kg_${MtPlatforms}_imputed
 OutFile=~/GitCode/MitoImpute/DerivedData/ThousandGenomes/${MtPlatforms}/chrMT_1kg_${MtPlatforms}_imputed_ChromFixed
+awk '{{$1 = "26"; print}}' ${InFile} > ${OutFile}
+
+# CONVERT OXFORD TO PEDIGREE
+echo
+echo "CONVERTING OXFORD TO PEDIGREE"
+gen=~/GitCode/MitoImpute/DerivedData/ThousandGenomes/${MtPlatforms}/chrMT_1kg_${MtPlatforms}_imputed_ChromFixed
+sam=~/GitCode/MitoImpute/DerivedData/ThousandGenomes/${MtPlatforms}/chrMT_1kg_${MtPlatforms}_imputed_samples
+out=~/GitCode/MitoImpute/DerivedData/ThousandGenomes/${MtPlatforms}/chrMT_1kg_${MtPlatforms}_imputed
+
+plink1.9 --gen ${gen} --sample ${sam} --hard-call-threshold 0.49 --keep-allele-order --output-chr 26 --recode --out ${out}
+
+# CONVERT OXFORD TO VCF
+echo
+echo "CONVERTING OXFORD TO VCF"
+gen=~/GitCode/MitoImpute/DerivedData/ThousandGenomes/${MtPlatforms}/chrMT_1kg_${MtPlatforms}_imputed_ChromFixed
+sam=~/GitCode/MitoImpute/DerivedData/ThousandGenomes/${MtPlatforms}/chrMT_1kg_${MtPlatforms}_imputed_samples
+out=~/GitCode/MitoImpute/DerivedData/ThousandGenomes/${MtPlatforms}/chrMT_1kg_${MtPlatforms}_imputed
+
+plink1.9 --gen ${gen} --sample ${sam} --hard-call-threshold 0.49 --keep-allele-order --output-chr 26 --recode vcf --out ${out}
+
+
+# GENERATE QC REPORT
+echo
+echo "GENERATING QC REPORT"
+s=~/GitCode/MitoImpute/scripts/R/MT_imputation_QC.Rmd
+wgs_map=~/GitCode/MitoImpute/DerivedData/ThousandGenomes/chrMT_1kg_norm_decomposed_firstAlt.map
+wgs_ped=~/GitCode/MitoImpute/DerivedData/ThousandGenomes/chrMT_1kg_norm_decomposed_firstAlt.ped
+wgs_vcf=~/GitCode/MitoImpute/DerivedData/ThousandGenomes/chrMT_1kg_norm_decomposed_firstAlt.vcf.gz
+typ_map=~/GitCode/MitoImpute/DerivedData/ThousandGenomes/${MtPlatforms}/chrMT_1kg_${MtPlatforms}.map
+typ_ped=~/GitCode/MitoImpute/DerivedData/ThousandGenomes/${MtPlatforms}/chrMT_1kg_${MtPlatforms}.ped
+typ_vcf=~/GitCode/MitoImpute/DerivedData/ThousandGenomes/${MtPlatforms}/chrMT_1kg_${MtPlatforms}.vcf.gz
+imp_map=~/GitCode/MitoImpute/DerivedData/ThousandGenomes/${MtPlatforms}/chrMT_1kg_${MtPlatforms}_imputed.map
+imp_ped=~/GitCode/MitoImpute/DerivedData/ThousandGenomes/${MtPlatforms}/chrMT_1kg_${MtPlatforms}_imputed.ped
+imp_vcf=~/GitCode/MitoImpute/DerivedData/ThousandGenomes/${MtPlatforms}/chrMT_1kg_${MtPlatforms}_imputed.vcf
+imp_info=~/GitCode/MitoImpute/DerivedData/ThousandGenomes/${MtPlatforms}/chrMT_1kg_${MtPlatforms}_imputed_info
+
+rwd = `pwd`/
+output_dir=~/GitCode/MitoImpute/DerivedData/ThousandGenomes/${MtPlatforms}/
+info_cut='0'
+
