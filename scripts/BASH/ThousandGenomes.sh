@@ -87,7 +87,12 @@ imp_ped=~/GitCode/MitoImpute/DerivedData/ThousandGenomes/${MtPlatforms}/chrMT_1k
 imp_vcf=~/GitCode/MitoImpute/DerivedData/ThousandGenomes/${MtPlatforms}/chrMT_1kg_${MtPlatforms}_imputed.vcf
 imp_info=~/GitCode/MitoImpute/DerivedData/ThousandGenomes/${MtPlatforms}/chrMT_1kg_${MtPlatforms}_imputed_info
 
-rwd = `pwd`/
+output=~/GitCode/MitoImpute/DerivedData/ThousandGenomes/${MtPlatforms}/chrMT_1kg_{MtPlatforms}_mtImputed_QC.html
+
+rwd=`pwd`/
 output_dir=~/GitCode/MitoImpute/DerivedData/ThousandGenomes/${MtPlatforms}/
 info_cut='0'
 
+#R -e 'rmarkdown::render(rmarkdown::render(${s}, output_file = ${output}, output_dir = ${output_dir}, params = list(rwd = ${rwd}, info.cut = ${info_cut}, wgs.map = ${wgs_map}, wgs.ped = ${wgs_ped}, wgs.vcf = ${wgs_vcf}, typ.map = "{input.typ_map}", typ.ped = ${typ_ped}, typ.vcf = ${typ_vcf}, imp.map = ${imp_map}, imp.ped = ${imp_ped}, imp.vcf= ${imp_vcf}, imp.info = ${input.imp_info}))' --slave
+echo
+echo "rmarkdown::render(${s}, output_file = ${output}, output_dir = ${output_dir}, params = list(rwd = ${rwd}, info.cut = ${info_cut}, wgs.map = ${wgs_map}, wgs.ped = ${wgs_ped}, wgs.vcf = ${wgs_vcf}"#, typ.map = {input.typ_map}, typ.ped = ${typ_ped}, typ.vcf = ${typ_vcf}, imp.map = ${imp_map}, imp.ped = ${imp_ped}, imp.vcf= ${imp_vcf}, imp.info = ${input.imp_info}))"
