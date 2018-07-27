@@ -1,7 +1,7 @@
 #!/bin/bash
 #PBS -P te53
-#PBS -q normal
-#PBS -l walltime=48:00:00
+#PBS -q express
+#PBS -l walltime=00:10:00
 #PBS -l mem=32GB
 #PBS -l ncpus=1
 #PBS -N impute_SNPchip_1kGP
@@ -110,6 +110,8 @@ imp_map=/g/data1a/te53/MitoImpute/data/STRANDS/${MtPlatforms}/chrMT_1kg_${MtPlat
 imp_ped=/g/data1a/te53/MitoImpute/data/STRANDS/${MtPlatforms}/chrMT_1kg_${MtPlatforms}_imputed.ped
 imp_vcf=/g/data1a/te53/MitoImpute/data/STRANDS/${MtPlatforms}/chrMT_1kg_${MtPlatforms}_imputed.vcf
 imp_info=/g/data1a/te53/MitoImpute/data/STRANDS/${MtPlatforms}/chrMT_1kg_${MtPlatforms}_imputed_info
+
+output=/g/data1a/te53/MitoImpute/data/STRANDS/${MtPlatforms}/chrMT_1kg_${MtPlatforms}_mtImputed_QC.html
 
 rwd = `pwd`/
 output_dir=~/GitCode/MitoImpute/DerivedData/ThousandGenomes/${MtPlatforms}/
