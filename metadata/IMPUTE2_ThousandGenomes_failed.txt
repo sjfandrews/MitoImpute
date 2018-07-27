@@ -2,3 +2,15 @@ BDCHP-1x10-HUMANHAP300v1-1_11219278_C-b37
 HumanHap300v2_A-b37
 HumanCNV370v1_C-b37
 HumanCNV370-Quadv3_C-b37
+HumanOmniExpress-12v1_A-b37
+HumanOmniExpress-12v1-1_A-b37
+HumanOmniExpress-12v1-Multi_B-b37
+HumanOmniExpress-12v1-1_B-b37
+HumanOmniExpress-12v1-Multi_C-b37
+HumanOmniExpress-12v1_H-b37
+HumanOmniExpress-12v1_J-b3
+humanomniexpress-12v1_j_ffpe-b37
+humanomniexpress-24v1-0_a-b37
+humanomniexpress-24-v1-1-a-b37
+HumanOmniExpress-24-v1-0-B-b37
+InfiniumOmniExpress-24v1-2_A1-b37
