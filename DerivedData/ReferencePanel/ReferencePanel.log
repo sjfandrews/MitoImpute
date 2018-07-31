@@ -1,29 +1,30 @@
 PLINK v1.90b5.2 64-bit (9 Jan 2018)
 Options in effect:
   --double-id
-  --out DerivedData/ReferencePanel/ReferencePanel
+  --keep-allele-order
+  --out DerivedData/test/ReferencePanel
   --recode
-  --vcf DerivedData/ReferencePanel/ReferencePanel_highQual_filtered.vcf.gz
+  --vcf DerivedData/test/ReferencePanel.vcf.gz
 
 Hostname: sheas-imac.19e98.mountsinai.org
 Working directory: /Users/sheaandrews/Dropbox/src/MitoImpute
-Start time: Thu Jul 19 18:08:15 2018
+Start time: Mon Jul 30 17:31:20 2018
 
-Random number seed: 1532038095
+Random number seed: 1532986280
 32768 MB RAM detected; reserving 16384 MB for main workspace.
---vcf: DerivedData/ReferencePanel/ReferencePanel-temporary.bed +
-DerivedData/ReferencePanel/ReferencePanel-temporary.bim +
-DerivedData/ReferencePanel/ReferencePanel-temporary.fam written.
-400 variants loaded from .bim file.
-34044 people (0 males, 0 females, 34044 ambiguous) loaded from .fam.
-Ambiguous sex IDs written to DerivedData/ReferencePanel/ReferencePanel.nosex .
+--vcf: DerivedData/test/ReferencePanel-temporary.bed +
+DerivedData/test/ReferencePanel-temporary.bim +
+DerivedData/test/ReferencePanel-temporary.fam written.
+410 variants loaded from .bim file.
+36960 people (0 males, 0 females, 36960 ambiguous) loaded from .fam.
+Ambiguous sex IDs written to DerivedData/test/ReferencePanel.nosex .
 Using 1 thread (no multithreaded calculations invoked).
-Before main variant filters, 34044 founders and 0 nonfounders present.
+Before main variant filters, 36960 founders and 0 nonfounders present.
 Calculating allele frequencies... done.
-Total genotyping rate is 0.999066.
-400 variants and 34044 people pass filters and QC.
+Total genotyping rate is 0.998887.
+410 variants and 36960 people pass filters and QC.
 Note: No phenotypes present.
---recode ped to DerivedData/ReferencePanel/ReferencePanel.ped +
-DerivedData/ReferencePanel/ReferencePanel.map ... done.
+--recode ped to DerivedData/test/ReferencePanel.ped +
+DerivedData/test/ReferencePanel.map ... done.
 
-End time: Thu Jul 19 18:08:16 2018
+End time: Mon Jul 30 17:31:20 2018

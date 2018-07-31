@@ -28,6 +28,9 @@ The following R packages are also required:
 
 Note that the development versions of ggforce (required for plotting alluvial diagrams) and Hi-MC (required for mitochondrial haplogroup assignment) are required. These packages can be isntalled directly from github using devtools (see their respective pages).
 
+The following Python modules are required:
+1. pysam
+
 Once all the prerequiste software is isntalled, MitoImpute can be installed on a git-enabled machine by typeing:
 
 ```bash
@@ -59,3 +62,9 @@ A custom reference panel for imputation can be found in the ```MitoImpute/Derive
 3. -m: A fine-scale recombination map for the region to be analyzed ```(MtMap.txt)```
 
 setting REFDATA in the ```mtImpute_config.yaml``` file to ```path/to/MitoImpute/DerivedData/ReferencePanel``` will automaticlay call these files.
+
+To construct the reference panel, 44,299 sequences were downloaded from NCBI using the search term:
+
+```(016500[SLEN]:016600[SLEN]) AND Homo[Organism] AND mitochondrion[FILT] AND complete genome NOT (Homo sp. Altai OR Denisova hominin OR neanderthalensis OR heidelbergensis OR consensus OR ancient human remains OR shotgun)```
+
+The 44,299 sequences were aligned to Easteal, Jermiin, and Ott mitochondrial master alignment (~8,000 manually aligned sequneces...) using Geneious 10.2.6.

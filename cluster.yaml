@@ -1,0 +1,9 @@
+__default__:
+  project: acc_LOAD
+  partition: bode
+  queue: premium
+  cores: 1
+  mem: 3000
+  time: '30'
+Impute2:
+  time: '24:00'
