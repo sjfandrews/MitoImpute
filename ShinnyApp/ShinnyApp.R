@@ -7,6 +7,11 @@ MT_haps <- readRDS("~/Dropbox/src/MitoImpute/ShinnyApp/MT_haps.rds")
 imp.info <- readRDS("~/Dropbox/src/MitoImpute/ShinnyApp/imp.info.rds")
 imp.dat <- readRDS("~/Dropbox/src/MitoImpute/ShinnyApp/imp.dat.rds")
 
+#GitCode/MitoImpute/ShinnyApp/imp.dat.rds
+MT_haps <- readRDS("~/GitCode/MitoImpute/ShinnyApp/MT_haps.rds")
+imp.info <- readRDS("~/GitCode/MitoImpute/ShinnyApp/imp.info.rds")
+imp.dat <- readRDS("~/GitCode/MitoImpute/ShinnyApp/imp.dat.rds")
+
 # Define UI for app that draws a histogram ----
 ui <- fluidPage(
   
