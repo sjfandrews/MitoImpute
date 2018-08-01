@@ -166,7 +166,24 @@ ui <- fluidPage(
 )
 
 server <- function(input, output) {
-  ## Summary Text
+  
+  mt.haps <- reactive({
+    ## Cut put to include snps
+    info.cut <- input$bins
+    
+    ## Filter SNPs
+    rm.info <- filter(imp.info[[input$select]], info > info.cut)
+    imp.dat_filt <- imp.dat[[input$select]][ ,colnames(imp.dat[[input$select]]) %in% 
+                                               c('Individual', rm.info$position)]
+    
+    ## Assign haplogroups
+    MTimp.classifications <- HiMC::getClassifications(as.data.frame(imp.dat_filt))
+    mt.haps <- MT_haps[[input$select]] %>% 
+      left_join(MTimp.classifications, by = 'Individual') %>% 
+      rename(haplogroup_imp = haplogroup, full_path_imp = full_path)
+  })
+  
+    ## Summary Text
   output$type0 = renderUI({
     SnpType <- filter(imp.info[[input$select]], type == 0)
     HTML(paste0(tags$br(), "SNPs in Reference Panel only: ", nrow(SnpType)))
@@ -190,22 +207,9 @@ server <- function(input, output) {
     HTML(paste0(tags$br(), "Typed vs WGS Haplogroup concordance: ", as.character(hap.concordance[2,2]), '%'))
   })
   output$PostConc = renderText({
-    ## Cut put to include snps
-    info.cut <- input$bins
-    
-    ## Filter SNPs
-    rm.info <- filter(imp.info[[input$select]], info > info.cut)
-    imp.dat_filt <- imp.dat[[input$select]][ ,colnames(imp.dat[[input$select]]) %in% 
-                                               c('Individual', rm.info$position)]
-    
-    ## Assign haplogroups
-    MTimp.classifications <- HiMC::getClassifications(as.data.frame(imp.dat_filt))
-    mt.haps <- MT_haps[[input$select]] %>% 
-      left_join(MTimp.classifications, by = 'Individual') %>% 
-      rename(haplogroup_imp = haplogroup, full_path_imp = full_path)
-    
+
     ## Count pairs of haplogroups of imputed and WGS assignments
-    hap.concordance <- mt.haps %>%
+    hap.concordance <- mt.haps() %>%
       count(haplogroup_imp, haplogroup_wgs) %>% 
       mutate(perc = (n/sum(n))*100) %>% 
       mutate(match = haplogroup_imp == haplogroup_wgs) %>% 
@@ -293,22 +297,8 @@ server <- function(input, output) {
   
   ## Haplogroup Concordance plot - Imputed vs WGS
   output$PostPlot <- renderPlot({
-    ## Cut put to include snps
-    info.cut <- input$bins
-    
-    ## Filter SNPs
-    rm.info <- filter(imp.info[[input$select]], info > info.cut)
-    imp.dat_filt <- imp.dat[[input$select]][ ,colnames(imp.dat[[input$select]]) %in% 
-                                        c('Individual', rm.info$position)]
-    
-    ## Assign haplogroups
-    MTimp.classifications <- HiMC::getClassifications(as.data.frame(imp.dat_filt))
-    mt.haps <- MT_haps[[input$select]] %>% 
-      left_join(MTimp.classifications, by = 'Individual') %>% 
-      rename(haplogroup_imp = haplogroup, full_path_imp = full_path)
-    
     ## Count pairs of haplogroups of imputed and WGS assignments
-    hap.match <- mt.haps %>%
+    hap.match <- mt.haps() %>%
       count(haplogroup_imp, haplogroup_wgs) %>% 
       mutate(perc = round((n/sum(n))*100)) %>% 
       mutate(match = haplogroup_imp == haplogroup_wgs) 
@@ -333,21 +323,8 @@ server <- function(input, output) {
       })
 
   output$PostMatch <- DT::renderDataTable(DT::datatable({
-    info.cut <- input$bins
-    
-    ## Filter SNPs
-    rm.info <- filter(imp.info[[input$select]], info > info.cut)
-    imp.dat_filt <- imp.dat[[input$select]][ ,colnames(imp.dat[[input$select]]) %in% 
-                                               c('Individual', rm.info$position)]
-    
-    ## Assign haplogroups
-    MTimp.classifications <- HiMC::getClassifications(as.data.frame(imp.dat_filt))
-    mt.haps <- MT_haps[[input$select]] %>% 
-      left_join(MTimp.classifications, by = 'Individual') %>% 
-      rename(haplogroup_imp = haplogroup, full_path_imp = full_path)
-    
-    ## Count pairs of haplogroups of imputed and WGS assignments
-    mt.haps %>%
+     ## Count pairs of haplogroups of imputed and WGS assignments
+    mt.haps() %>%
       count(haplogroup_imp, haplogroup_wgs) %>% 
       mutate(perc = round((n/sum(n))*100)) %>% 
       mutate(match = haplogroup_imp == haplogroup_wgs) 
