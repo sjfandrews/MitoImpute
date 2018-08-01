@@ -3,14 +3,12 @@ library(tidyverse)
 library(ggforce)
 library(HiMC); data(nodes)
 
-MT_haps <- readRDS("~/Dropbox/src/MitoImpute/ShinnyApp/MT_haps.rds")
-imp.info <- readRDS("~/Dropbox/src/MitoImpute/ShinnyApp/imp.info.rds")
-imp.dat <- readRDS("~/Dropbox/src/MitoImpute/ShinnyApp/imp.dat.rds")
+setwd('~/Dropbox/src/MitoImpute')
+#setwd('~/GitCode/MitoImpute/')
 
-#GitCode/MitoImpute/ShinnyApp/imp.dat.rds
-MT_haps <- readRDS("~/GitCode/MitoImpute/ShinnyApp/MT_haps.rds")
-imp.info <- readRDS("~/GitCode/MitoImpute/ShinnyApp/imp.info.rds")
-imp.dat <- readRDS("~/GitCode/MitoImpute/ShinnyApp/imp.dat.rds")
+MT_haps <- readRDS("ShinnyApp/MT_haps.rds")
+imp.info <- readRDS("ShinnyApp/imp.info.rds")
+imp.dat <- readRDS("ShinnyApp/imp.dat.rds")
 
 # Define UI for app that draws a histogram ----
 ui <- fluidPage(
