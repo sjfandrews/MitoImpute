@@ -3,9 +3,9 @@ library(tidyverse)
 library(ggforce)
 library(HiMC); data(nodes)
 
-MT_haps <- readRDS("~/Dropbox/Research/PostDoc-MSSM/3_mitoWAX/3_Scripts/ShinnyApp/MT_haps.rds")
-imp.info <- readRDS("~/Dropbox/Research/PostDoc-MSSM/3_mitoWAX/3_Scripts/ShinnyApp/imp.info.rds")
-imp.dat <- readRDS("~/Dropbox/Research/PostDoc-MSSM/3_mitoWAX/3_Scripts/ShinnyApp/imp.dat.rds")
+MT_haps <- readRDS("~/Dropbox/src/MitoImpute/ShinnyApp/MT_haps.rds")
+imp.info <- readRDS("~/Dropbox/src/MitoImpute/ShinnyApp/imp.info.rds")
+imp.dat <- readRDS("~/Dropbox/src/MitoImpute/ShinnyApp/imp.dat.rds")
 
 # Define UI for app that draws a histogram ----
 ui <- fluidPage(
@@ -163,6 +163,7 @@ ui <- fluidPage(
 )
 
 server <- function(input, output) {
+  ## Summary Text
   output$type0 = renderUI({
     SnpType <- filter(imp.info[[input$select]], type == 0)
     HTML(paste0(tags$br(), "SNPs in Reference Panel only: ", nrow(SnpType)))
