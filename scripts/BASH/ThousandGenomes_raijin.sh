@@ -25,9 +25,9 @@ echo "LOADED plink v1.9"
 echo "LOADED IMPUTE2 v2.3.2"
 
 # SPECIFY REFERENCE PANEL
-REFpanel=ReferencePanel_v3
+REFpanel="ReferencePanel_v3"
 echo
-echo "REFERENCE PANEL: $REFpanel"
+echo "REFERENCE PANEL: ${REFpanel}"
 
 # CREATE DIRECTORY
 if [ -d  /g/data1a/te53/MitoImpute/data/STRANDS/${MtPlatforms}/${REFpanel}/ ]
