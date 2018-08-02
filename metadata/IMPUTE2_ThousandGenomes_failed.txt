@@ -30,3 +30,6 @@ Mapping250K_Sty.na32.annot-b37
 OTHER
 Immuno_BeadChip_11419691_B-b37
 InfiniumImmunoArray-24v2-0_A-b3
+
+NOT IN REF PANEL 3 ONLY
+HumanOmniExpress-12v1_J-b37
