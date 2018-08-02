@@ -111,7 +111,7 @@ then
 else
 	echo
 	echo "${OXF}.hap.gz OR ${OXF}.legend.gz OR ${OXF}.samples NOT FOUND ... CONVERTING TO OXFORD HAP, LEGEND, AND SAMPLES FORMAT"
-	bcftools convert --haplegendsample ${OXF} --sex ${SEX} ${VCF_FILT}
+	bcftools1.4.1 convert --haplegendsample ${OXF} --sex ${SEX} ${VCF_FILT}
 fi
 
 # CONVERT TO PLINK FORMAT
@@ -173,6 +173,11 @@ cp ${VCF_FILT} ${GIT_DIR}
 cp ${VCF_FILT}.csi ${GIT_DIR}
 cp ${SEX} ${GIT_DIR}
 
+# RUN IMPUTE2 ON ADNI
+ADNI_GEN=/Volumes/MHS/MitoImpute/data/OXFORD/ADNI_samples.gen.gz
+ADNI_SAMPLES=/Volumes/MHS/MitoImpute/data/OXFORD/ADNI_samples.samples
+IMPUTE_OUT=/Volumes/MHS/MitoImpute/data/IMPUTE2/ADNI_impute_${REFpanel}
+impute2 -chrX -m ${MAP} -h ${OXF}.hap.gz -l ${OXF}.legend.gz -g ${ADNI_GEN} -sample_g ${ADNI_SAMPLES} -int 1 16569 -Ne 20000 -o ${IMPUTE_OUT}
 
 
 
