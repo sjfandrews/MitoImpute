@@ -1,9 +1,0 @@
--m /Volumes/TimMcInerney/Other/Shea_Imputation/data_files/plink_files/McI_ref/McInerneyMaster_EuroNonEuro_SHEAspecs.map
-
--h /Volumes/TimMcInerney/Other/Shea_Imputation/data_files/OXFORD/EuroNonEuro/McInerneyMaster_EuroNonEuro_SHEAspecs.hap.gz
-
--l /Volumes/TimMcInerney/Other/Shea_Imputation/data_files/OXFORD/EuroNonEuro/McInerneyMaster_EuroNonEuro_SHEAspecs.legend.gz
-
--g /Volumes/TimMcInerney/Other/Shea_Imputation/data_files/OXFORD/sample_panels/SamplePanel_180221.gen.gz
-
--sample_g /Volumes/TimMcInerney/Other/Shea_Imputation/data_files/OXFORD/sample_panels/SamplePanel_180221.samples

@@ -6,7 +6,7 @@
 Copyright 2008 Bryan Howie, Peter Donnelly, and Jonathan Marchini
 Please see the LICENCE file included with this program for conditions of use.
 
-The seed for the random number generator is 112738277.
+The seed for the random number generator is 1613947607.
 
 Command-line input: impute2 -chrX -m example/ReferencePanel/MtMap.txt -h example/ReferencePanel/ReferencePanel.hap.gz -l example/ReferencePanel/ReferencePanel.legend.gz -g example/imputed/ExampleSamplePanel.gen -sample_g example/imputed/ExampleSamplePanel.sample -int 1 16569 -Ne 20000 -o example/imputed/ExampleSamplePanel_imputed
 
@@ -172,8 +172,8 @@ When the masked study genotypes were imputed with reference data from Panel 0, t
   [0.2-0.3]          0          0.0         [ >= 0.2]   100.0         98.3
   [0.3-0.4]          0          0.0         [ >= 0.3]   100.0         98.3
   [0.4-0.5]          0          0.0         [ >= 0.4]   100.0         98.3
-  [0.5-0.6]        566         65.0         [ >= 0.5]   100.0         98.3
-  [0.6-0.7]        315         71.4         [ >= 0.6]    98.7         98.7
-  [0.7-0.8]        282         43.6         [ >= 0.7]    98.0         98.9
-  [0.8-0.9]        416         68.3         [ >= 0.8]    97.3         99.3
-  [0.9-1.0]      42176         99.6         [ >= 0.9]    96.4         99.6
+  [0.5-0.6]        545         63.5         [ >= 0.5]   100.0         98.3
+  [0.6-0.7]        336         73.2         [ >= 0.6]    98.8         98.7
+  [0.7-0.8]        277         43.3         [ >= 0.7]    98.0         98.9
+  [0.8-0.9]        420         68.1         [ >= 0.8]    97.4         99.3
+  [0.9-1.0]      42177         99.6         [ >= 0.9]    96.4         99.6

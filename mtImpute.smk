@@ -16,7 +16,7 @@ OXFORD = ["gen", "sample"]
 RWD = os.getcwd()
 
 ## For running on cluster
-shell.prefix('module load plink/1.90 impute2 R/3.4.3; ')
+#shell.prefix('module load plink/1.90 impute2 R/3.4.3; ')
 
 rule all:
     input:
@@ -67,7 +67,8 @@ rule Impute2:
         sample = '{DataOut}/{sample}.sample',
     output:
         '{DataOut}/{sample}_imputed',
-        '{DataOut}/{sample}_imputed_samples'
+        '{DataOut}/{sample}_imputed_samples',
+        '{DataOut}/{sample}_imputed_info'
     params:
         out = '{DataOut}/{sample}_imputed'
     shell:

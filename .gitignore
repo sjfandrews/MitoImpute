@@ -1,7 +1,9 @@
 .DS_Store
+.Rhistory
 .snakemake/*
 data/*
 DerivedData/SamplePanel/*
 DerivedData/test/*
 DerivedData/ThousandGenomes/*
 www.well.ox.ac.uk/*
+example/imputed/*
