@@ -49,7 +49,15 @@ git clone https://github.com/sjfandrews/MitoImpute
 To impute mitochondrial SNPs in a study dataset, run the following code:
 
 ```bash
+cd MitoImpute
 snakemake -s mtImpute.smk
+```
+
+If the rmarkdown report is not required, run the following code:
+
+```bash
+cd MitoImpute
+snakemake -s mtImpute.smk --until oxford2vcf oxford2ped oxford2bed
 ```
 
 Options for the snakemake file are set in the corresponding config file ```mtImpute_config.yaml``` file. The avaliable options are:
@@ -64,15 +72,11 @@ REFDATA: 'path/to/reference/panel'
 The default options are for the example dataset.
 
 ### Reference panel
-A custom reference panel for imputation can be found in the ```MitoImpute/DerivedData/ReferencePanel/``` directory. The key files consist of:
+A custom reference panel for imputation can be found in the ```MitoImpute/ReferencePanel/``` directory. The key files consist of:
 1. -h: A file of known haplotypes ```(ReferencePanel.hap.gz)```.
 2. -l: Legend file(s) with information about the SNPs in the -h file ```(ReferencePanel.legend.gz)```
 3. -m: A fine-scale recombination map for the region to be analyzed ```(MtMap.txt)```
 
-setting REFDATA in the ```mtImpute_config.yaml``` file to ```path/to/MitoImpute/ReferencePanel``` will automaticlay call these files.
+setting REFDATA in the ```mtImpute_config.yaml``` file to ```ReferencePanel``` will automaticlay call these files.
 
-To construct the reference panel, 44,299 sequences were downloaded from NCBI using the search term:
-
-```(016500[SLEN]:016600[SLEN]) AND Homo[Organism] AND mitochondrion[FILT] AND complete genome NOT (Homo sp. Altai OR Denisova hominin OR neanderthalensis OR heidelbergensis OR consensus OR ancient human remains OR shotgun)```
-
-The 44,299 sequences were aligned to Easteal, Jermiin, and Ott mitochondrial master alignment (~8,000 manually aligned sequneces...) using Geneious 10.2.6.
+Further details on the pipeline for constructing the reference panel can be found in the [MitoImputePrep](https://github.com/sjfandrews/MitoImputePrep) repo.

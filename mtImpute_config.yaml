@@ -9,3 +9,6 @@ SAMPLE: 'ExampleSamplePanel'
 DATAIN: 'example/SamplePanel'
 DATAOUT: "example/imputed"
 REFDATA: "example/ReferencePanel"
+
+## Uncommenting below will use the full reference panel
+#REFDATA: "ReferencePanel"
