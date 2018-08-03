@@ -122,7 +122,7 @@ rule oxford2vcf:
 
 rule Imputation_QC_Report:
     input:
-        script = 'scripts/R/MT_imputation_QC_examples.Rmd',
+        script = 'scripts/MT_imputation_QC_examples.Rmd',
         typ_map = DATAOUT + "/{sample}_typedOnly.map",
         typ_ped = DATAOUT + "/{sample}_typedOnly.ped",
         imp_map = DATAOUT + "/Imputed_{sample}.map",

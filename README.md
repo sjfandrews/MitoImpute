@@ -37,9 +37,6 @@ install.packages(c("tidyverse", "rmarkdown", "devtools"))
 devtools::install_github(c("vserch/himc/HiMC", 'thomasp85/ggforce'))
 ```
 
-The following Python modules are required:
-1. [pysam](http://pysam.readthedocs.io/en/latest/api.html)
-
 Once all the prerequiste software is isntalled, MitoImpute can be installed on a git-enabled machine by typeing:
 
 ```bash
