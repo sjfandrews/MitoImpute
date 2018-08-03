@@ -20,40 +20,40 @@ RWD = os.getcwd()
 
 rule all:
     input:
-        expand("{DataOut}/Imputed_{sample}.{ext}", ext=BPLINK, sample=SAMPLE, DataOut=DATAOUT),
-        expand("{DataOut}/Imputed_{sample}.{ext}", ext=PLINK, sample=SAMPLE, DataOut=DATAOUT),
-        expand("{DataOut}/Imputed_{sample}.vcf", sample=SAMPLE, DataOut=DATAOUT),
-        expand("{DataOut}/stats/{sample}_mtImputed_QC.html", sample=SAMPLE, DataOut=DATAOUT),
+        expand(DATAOUT + "/Imputed_{sample}.{ext}", ext=BPLINK, sample=SAMPLE),
+        expand(DATAOUT + "/Imputed_{sample}.{ext}", ext=PLINK, sample=SAMPLE),
+        expand(DATAOUT + "/Imputed_{sample}.vcf", sample=SAMPLE),
+        expand(DATAOUT + "/stats/{sample}_mtImputed_QC.html", sample=SAMPLE),
 
 rule SexFam:
-    input: expand("{DataIn}/{{sample}}.fam", DataIn=DATAIN)
-    output: "{DataOut}/{sample}_maleOnly.fam"
+    input: DATAIN + "/{sample}.fam"
+    output: DATAOUT + "/{sample}_maleOnly.fam"
     shell: """
         awk '{{$5 = "1"; print}}' {input} > {output}
     """
 
 rule plink2oxford:
     input:
-        bplink = expand("{DataIn}/{{sample}}.{ext}", ext=BPLINK, DataIn=DATAIN),
-        fam = "{DataOut}/{sample}_maleOnly.fam"
+        bplink = expand(DATAIN + "/{{sample}}.{ext}", ext=BPLINK),
+        fam = DATAOUT + "/{sample}_maleOnly.fam"
     output:
-        expand("{{DataOut}}/{{sample}}.{ext}", ext=OXFORD)
+        expand(DATAOUT + "/{{sample}}.{ext}", ext=OXFORD)
     params:
-        inFile = expand("{DataIn}/{sample}", DataIn=DATAIN, sample = SAMPLE),
-        out = "{DataOut}/{sample}"
+        inFile = expand(DATAIN + "/{sample}", sample = SAMPLE),
+        out = DATAOUT + "/{sample}"
     shell:
         'plink --bfile {params.inFile} --fam {input.fam} \
         --recode oxford --chr 26 --output-chr 26 --keep-allele-order --out {params.out}'
 
 rule bplink2plink:
     input:
-        bplink = expand("{DataIn}/{{sample}}.{ext}", ext=BPLINK, DataIn=DATAIN),
-        fam = "{DataOut}/{sample}_maleOnly.fam"
+        bplink = expand(DATAIN + "/{{sample}}.{ext}", ext=BPLINK),
+        fam = DATAOUT + "/{sample}_maleOnly.fam"
     output:
-        expand("{{DataOut}}/{{sample}}_typedOnly.{ext}", ext=PLINK)
+        expand(DATAOUT + "/{{sample}}_typedOnly.{ext}", ext=PLINK)
     params:
-        inFile = expand("{DataIn}/{sample}", DataIn=DATAIN, sample = SAMPLE),
-        out = "{DataOut}/{sample}_typedOnly"
+        inFile = expand(DATAIN + "/{sample}", sample = SAMPLE),
+        out = DATAOUT + "/{sample}_typedOnly"
     shell:
         'plink --bfile {params.inFile} --fam {input.fam} \
         --recode --chr 26 --output-chr 26 --keep-allele-order --out {params.out}'
@@ -63,59 +63,59 @@ rule Impute2:
         m = expand('{RefData}/MtMap.txt', RefData=REFDATA),
         h = expand('{RefData}/ReferencePanel.hap.gz', RefData=REFDATA),
         l = expand('{RefData}/ReferencePanel.legend.gz', RefData=REFDATA),
-        g = '{DataOut}/{sample}.gen',
-        sample = '{DataOut}/{sample}.sample',
+        g = DATAOUT + "/{sample}.gen",
+        sample = DATAOUT + "/{sample}.sample",
     output:
-        '{DataOut}/{sample}_imputed',
-        '{DataOut}/{sample}_imputed_samples',
-        '{DataOut}/{sample}_imputed_info'
+        DATAOUT + "/{sample}_imputed",
+        DATAOUT + "/{sample}_imputed_samples",
+        DATAOUT + "/{sample}_imputed_info"
     params:
-        out = '{DataOut}/{sample}_imputed'
+        out = DATAOUT + "/{sample}_imputed"
     shell:
         'impute2 -chrX -m {input.m} -h {input.h} -l {input.l} -g {input.g} \
         -sample_g {input.sample} -int 1 16569 -Ne 20000 -o {params.out}'
 
 rule FixChromName:
     input:
-        InFile = '{DataOut}/{sample}_imputed'
+        InFile = DATAOUT + "/{sample}_imputed"
     output:
-        OutFile = '{DataOut}/{sample}_imputed_ChromFixed'
+        OutFile = DATAOUT + "/{sample}_imputed_ChromFixed"
     shell:"""
         awk '{{$1 = "26"; print}}' {input.InFile} > {output.OutFile}
     """
 
 rule oxford2bed:
     input:
-        gen = '{DataOut}/{sample}_imputed_ChromFixed',
-        sample = '{DataOut}/{sample}_imputed_samples'
+        gen = DATAOUT + "/{sample}_imputed_ChromFixed",
+        sample = DATAOUT + "/{sample}_imputed_samples"
     output:
-        expand("{{DataOut}}/Imputed_{{sample}}.{ext}", ext=BPLINK)
+        expand(DATAOUT + "/Imputed_{{sample}}.{ext}", ext=BPLINK)
     params:
-        out = '{DataOut}/Imputed_{sample}'
+        out = DATAOUT + "/Imputed_{sample}"
     shell:
         'plink --gen {input.gen} --sample {input.sample} --hard-call-threshold 0.49 \
         --keep-allele-order --make-bed --output-chr 26 --out {params.out}'
 
 rule oxford2ped:
     input:
-        gen = '{DataOut}/{sample}_imputed_ChromFixed',
-        sample = '{DataOut}/{sample}_imputed_samples'
+        gen = DATAOUT + "/{sample}_imputed_ChromFixed",
+        sample = DATAOUT + "/{sample}_imputed_samples"
     output:
-        expand("{{DataOut}}/Imputed_{{sample}}.{ext}", ext=PLINK)
+        expand(DATAOUT + "/Imputed_{{sample}}.{ext}", ext=PLINK)
     params:
-        out = '{DataOut}/Imputed_{sample}'
+        out = DATAOUT + "/Imputed_{sample}"
     shell:
         'plink --gen {input.gen} --sample {input.sample} --hard-call-threshold 0.49 \
         --keep-allele-order --output-chr 26 --recode --out {params.out}'
 
 rule oxford2vcf:
     input:
-        gen = '{DataOut}/{sample}_imputed_ChromFixed',
-        sample = '{DataOut}/{sample}_imputed_samples'
+        gen = DATAOUT + "/{sample}_imputed_ChromFixed",
+        sample = DATAOUT + "/{sample}_imputed_samples"
     output:
-        "{DataOut}/Imputed_{sample}.vcf"
+        DATAOUT + "/Imputed_{sample}.vcf"
     params:
-        out = '{DataOut}/Imputed_{sample}'
+        out = DATAOUT + "/Imputed_{sample}"
     shell:
         'plink --gen {input.gen} --sample {input.sample} --hard-call-threshold 0.49 \
         --keep-allele-order --output-chr 26 --recode vcf --out {params.out}'
@@ -123,16 +123,16 @@ rule oxford2vcf:
 rule Imputation_QC_Report:
     input:
         script = 'scripts/R/MT_imputation_QC_examples.Rmd',
-        typ_map = "{DataOut}/{sample}_typedOnly.map",
-        typ_ped = "{DataOut}/{sample}_typedOnly.ped",
-        imp_map = '{DataOut}/Imputed_{sample}.map',
-        imp_ped = '{DataOut}/Imputed_{sample}.ped',
-        imp_info = '{DataOut}/{sample}_imputed_info',
+        typ_map = DATAOUT + "/{sample}_typedOnly.map",
+        typ_ped = DATAOUT + "/{sample}_typedOnly.ped",
+        imp_map = DATAOUT + "/Imputed_{sample}.map",
+        imp_ped = DATAOUT + "/Imputed_{sample}.ped",
+        imp_info = DATAOUT + "/{sample}_imputed_info",
     output:
-        "{DataOut}/stats/{sample}_mtImputed_QC.html"
+        DATAOUT + "/stats/{sample}_mtImputed_QC.html"
     params:
         rwd = RWD,
-        output_dir = "{DataOut}/stats",
+        output_dir = DATAOUT + "/stats",
         info_cut = '0'
 
     shell:

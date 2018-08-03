@@ -3,16 +3,16 @@ Options in effect:
   --gen example/imputed/ExampleSamplePanel_imputed_ChromFixed
   --hard-call-threshold 0.49
   --keep-allele-order
-  --make-bed
   --out example/imputed/Imputed_ExampleSamplePanel
   --output-chr 26
+  --recode vcf
   --sample example/imputed/ExampleSamplePanel_imputed_samples
 
 Hostname: sheas-imac.19e98.mountsinai.org
 Working directory: /Users/sheaandrews/Dropbox/src/MitoImpute
-Start time: Thu Aug  2 17:46:19 2018
+Start time: Fri Aug  3 08:10:10 2018
 
-Random number seed: 1533246379
+Random number seed: 1533298210
 32768 MB RAM detected; reserving 16384 MB for main workspace.
 --data: example/imputed/Imputed_ExampleSamplePanel-temporary.bed +
 example/imputed/Imputed_ExampleSamplePanel-temporary.bim +
@@ -22,11 +22,9 @@ example/imputed/Imputed_ExampleSamplePanel-temporary.fam written.
 Using 1 thread (no multithreaded calculations invoked).
 Before main variant filters, 503 founders and 0 nonfounders present.
 Calculating allele frequencies... done.
-Total genotyping rate is 0.999403.
+Total genotyping rate is 0.999412.
 436 variants and 503 people pass filters and QC.
 Note: No phenotypes present.
---make-bed to example/imputed/Imputed_ExampleSamplePanel.bed +
-example/imputed/Imputed_ExampleSamplePanel.bim +
-example/imputed/Imputed_ExampleSamplePanel.fam ... done.
+--recode vcf to example/imputed/Imputed_ExampleSamplePanel.vcf ... done.
 
-End time: Thu Aug  2 17:46:19 2018
+End time: Fri Aug  3 08:10:10 2018
