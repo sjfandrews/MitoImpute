@@ -37,7 +37,7 @@ library(readxl)
 library(HiMC); data(nodes)
 
 ##  Function
-#source('scripts/R/import_snps.R', chdir = FALSE)
+#source('scripts/import_snps.R', chdir = FALSE)
 
 ##  Function for calculating mathews correlation coefficent (MCC)
 # Moddifed from the mccr package
