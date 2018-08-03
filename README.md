@@ -21,6 +21,8 @@ Be sure to download and install the latest versions of the following software pa
 4. [PLINK](https://www.cog-genomics.org/plink2)
 5. [Impute2](https://mathgen.stats.ox.ac.uk/impute/impute_v2.html#download)
 
+Plink and Impute2 executibles should be located within the the /usr/local/bin/ directory. The following code can be used to move the executibles: ```cp </path/to/executible> /usr/local/bin/'''
+
 The following R packages are also required:
 1. [tidyverse](https://www.tidyverse.org/packages/)
 2. [rmarkdown](https://cran.r-project.org/web/packages/rmarkdown/index.html)
