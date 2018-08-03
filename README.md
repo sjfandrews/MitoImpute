@@ -18,16 +18,18 @@ Be sure to download and install the latest versions of the following software pa
 1. [Python 3](https://www.python.org/downloads/)
 2. [Snakemake](https://snakemake.readthedocs.io/en/stable/getting_started/installation.html)
 3. [R](https://cran.r-project.org/)
-4. [PLINK](https://www.cog-genomics.org/plink2)
-5. [Impute2](https://mathgen.stats.ox.ac.uk/impute/impute_v2.html#download)
+4. [Rstudio](https://www.rstudio.com/products/rstudio/download/)
+5. [PLINK](https://www.cog-genomics.org/plink2)
+6. [Impute2](https://mathgen.stats.ox.ac.uk/impute/impute_v2.html#download)
 
-Plink and Impute2 executibles should be located within the the /usr/local/bin/ directory. The following code can be used to move the executibles: ```cp </path/to/executible> /usr/local/bin/```
+Rstudio is recomended for running the MitoImputeShiny app. Plink and Impute2 executibles should be located within the the /usr/local/bin/ directory. The following code can be used to move the executibles: ```cp </path/to/executible> /usr/local/bin/```
 
 The following R packages are also required:
 1. [tidyverse](https://www.tidyverse.org/packages/)
 2. [rmarkdown](https://cran.r-project.org/web/packages/rmarkdown/index.html)
-3. [Hi-MC](https://github.com/vserch/himc)
-4. [ggforce](https://github.com/thomasp85/ggforce)
+4. [shiny](https://cran.r-project.org/web/packages/shiny/index.html)
+5. [Hi-MC](https://github.com/vserch/himc)
+6. [ggforce](https://github.com/thomasp85/ggforce)
 
 Note that the development versions of ggforce (required for plotting alluvial diagrams) and Hi-MC (required for mitochondrial haplogroup assignment) are required. These packages can be isntalled directly from github using devtools.
 
@@ -45,7 +47,8 @@ Once all the prerequiste software is isntalled, MitoImpute can be installed on a
 git clone https://github.com/sjfandrews/MitoImpute
 ```
 
-### Usage Overview
+## Usage Overview
+### MitoImpute
 To impute mitochondrial SNPs in a study dataset, run the following code:
 
 ```bash
@@ -71,7 +74,7 @@ REFDATA: 'path/to/reference/panel'
 
 The default options are for the example dataset.
 
-### Reference panel
+#### Reference panel
 A custom reference panel for imputation can be found in the ```MitoImpute/ReferencePanel/``` directory. The key files consist of:
 1. -h: A file of known haplotypes ```(ReferencePanel.hap.gz)```.
 2. -l: Legend file(s) with information about the SNPs in the -h file ```(ReferencePanel.legend.gz)```
@@ -80,3 +83,14 @@ A custom reference panel for imputation can be found in the ```MitoImpute/Refere
 setting REFDATA in the ```mtImpute_config.yaml``` file to ```ReferencePanel``` will automaticlay call these files.
 
 Further details on the pipeline for constructing the reference panel can be found in the [MitoImputePrep](https://github.com/sjfandrews/MitoImputePrep) repo.
+
+### MitoImpute Shiny
+MitoImputeShiny is a R shiny application for displaying the results of the 1000 Genomes MitoImpute validation pipeline. As detailed in the [MitoImputePrep](https://github.com/sjfandrews/MitoImputePrep) pipline, [Strand Files](http://www.well.ox.ac.uk/~wrayner/strand/), which provide the strand orientation and position of variants of the most common genotyping platform on build 37, were used to obtain a list of mtSNPs for each platform. The platform specific mtSNPs are then extracted from the Thousand Genome mitochondrial Sequences and Using these 'Typed SNPs', additional mitochondrial SNPs were then imputed using the reference panel. The Shiny application displays the concordance of haplogroup assignments made using the full mitochondrial sequence data vs using only the Typed mtSNPs or Typed + Imputed mtSNPs.
+
+To run MitoImputeShiny, in Rstudio run the following code:
+
+```r
+library(shiny)
+setwd("~/path/to/MitoImpute/Shiny")
+runApp()
+```
