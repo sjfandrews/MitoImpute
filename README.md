@@ -22,13 +22,20 @@ Be sure to download and install the latest versions of the following software pa
 5. [Impute2](https://mathgen.stats.ox.ac.uk/impute/impute_v2.html#download)
 
 The following R packages are also required:
-1. tidyverse
-2. ggplot2
-3. rmarkdown
-4. [Hi-MC](https://github.com/vserch/himc)
-5. [ggforce](https://github.com/thomasp85/ggforce)
+1. [tidyverse](https://www.tidyverse.org/packages/)
+2. [rmarkdown](https://cran.r-project.org/web/packages/rmarkdown/index.html)
+3. [Hi-MC](https://github.com/vserch/himc)
+4. [ggforce](https://github.com/thomasp85/ggforce)
 
-Note that the development versions of ggforce (required for plotting alluvial diagrams) and Hi-MC (required for mitochondrial haplogroup assignment) are required. These packages can be isntalled directly from github using devtools (see their respective pages).
+Note that the development versions of ggforce (required for plotting alluvial diagrams) and Hi-MC (required for mitochondrial haplogroup assignment) are required. These packages can be isntalled directly from github using devtools.
+
+```r
+## Install tidyverse, rmarkdown, and devtools
+install.packages(c("tidyverse", "rmarkdown", "devtools"))
+
+## Install HiMC and ggforce
+devtools::install_github(c("vserch/himc/HiMC", 'thomasp85/ggforce'))
+```
 
 The following Python modules are required:
 1. pysam
