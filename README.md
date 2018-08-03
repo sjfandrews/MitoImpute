@@ -35,7 +35,7 @@ Note that the development versions of ggforce (required for plotting alluvial di
 
 ```r
 ## Install tidyverse, rmarkdown, and devtools
-install.packages(c("tidyverse", "rmarkdown", "devtools"))
+install.packages(c("tidyverse", "shiny", "rmarkdown", "devtools"))
 
 ## Install HiMC and ggforce
 devtools::install_github(c("vserch/himc/HiMC", 'thomasp85/ggforce'))
