@@ -38,7 +38,7 @@ devtools::install_github(c("vserch/himc/HiMC", 'thomasp85/ggforce'))
 ```
 
 The following Python modules are required:
-1. pysam
+1. [pysam](http://pysam.readthedocs.io/en/latest/api.html)
 
 Once all the prerequiste software is isntalled, MitoImpute can be installed on a git-enabled machine by typeing:
 
@@ -70,7 +70,7 @@ A custom reference panel for imputation can be found in the ```MitoImpute/Derive
 2. -l: Legend file(s) with information about the SNPs in the -h file ```(ReferencePanel.legend.gz)```
 3. -m: A fine-scale recombination map for the region to be analyzed ```(MtMap.txt)```
 
-setting REFDATA in the ```mtImpute_config.yaml``` file to ```path/to/MitoImpute/DerivedData/ReferencePanel``` will automaticlay call these files.
+setting REFDATA in the ```mtImpute_config.yaml``` file to ```path/to/MitoImpute/ReferencePanel``` will automaticlay call these files.
 
 To construct the reference panel, 44,299 sequences were downloaded from NCBI using the search term:
 
