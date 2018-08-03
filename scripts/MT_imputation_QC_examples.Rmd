@@ -32,7 +32,7 @@ library(ggforce)
 library(HiMC); data(nodes)
 
 ##  Function
-source('scripts/import_snps.R', chdir = TRUE)
+#source('scripts/import_snps.R', chdir = TRUE)
 
 ##  Function for calculating mathews correlation coefficent (MCC)
 # Moddifed from the mccr package
