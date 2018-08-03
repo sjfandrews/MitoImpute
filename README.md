@@ -2,14 +2,14 @@
 **mtImpute.smk** is a snakemake pipeline for the imputation of mitochondrial genomes using Impute2 Chromosome X protocol. The steps in the pipline include:
 1. Change sex of all samples to male (as males are haploid for the X chromsome)
 2. Converts Bplink (.bed/.bim/.fam) files to:
-  3. oxford format (.gen/.sample)
-  4. plink format (.map/.ped)
+   - oxford format (.gen/.sample)
+   - plink format (.map/.ped)
 3. Runs the chromsome X Impute2 imputation protocol. This step uses a custom mitochondrial reference panel constructed using the MitoImputePrep pipeline - see below.
 4. Fixes chromosome label on the Impute2 output
 5. Converts the Imputed files to:
-  6. Bplink format
-  7. Plink format
-  8. vcf format
+   - Bplink format
+   - Plink format
+   - vcf format
 6. Generates a html rmarkdown report
 
 ## Getting Started
