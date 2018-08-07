@@ -7,3 +7,5 @@ DerivedData/test/*
 DerivedData/ThousandGenomes/*
 www.well.ox.ac.uk/*
 example/imputed/*
+Shiny/.Rapp.history
+Shiny/.Rhistory
