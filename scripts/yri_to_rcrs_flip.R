@@ -43,10 +43,7 @@ nucleotide_flip <- function(x){dplyr::recode(x, 'A' = 'T', 'T' = 'A', 'G' = 'C',
 ## Arg parse
 args = commandArgs(trailingOnly=TRUE)
 reference <- args[1]
-#reference <- '/Users/sheaandrews/Dropbox/src/MitoImputePrep/DerivedData/ReferencePanel/ReferenceSNPs.txt'
 bimfile <- args[2]
-#bimfile <- '/Users/sheaandrews/LOAD_minerva/dummy/Data/ADGC/ADGC_2018/ADGC_Phase1+Phase2/1000Genomes/ROSMAP1/RawGenotypes/ROSMAP1.bim'
-#bimfile <- '/Users/sheaandrews/LOAD_minerva/dummy/Data/ADRC/GSA_2018/GSA/GSA/MSMD/ADRC/Cleaning/raj_ADRC.bim'
 outfile <- args[3]
 
 ##  Read in reference
@@ -80,22 +77,35 @@ if(perc.rcrs > perc.pos){
       '\nPercentage of SNPs aligining to reference panel after rCRS conversion:', perc.rcrs,
       '\nSample is likely aligned to rCRS \n')
 }
+cat('\n')
 
 if(perc.rcrs > perc.pos){
-  rcrs_join %>% 
+  out <- rcrs_join %>% 
+    mutate(flip = !(A1 == Ref | A2 == Ref)) %>%
     mutate(A1_flip = ifelse(A1 == Ref | A2 == Ref, A1, nucleotide_flip(A1))) %>% 
     mutate(A2_flip = ifelse(A1 == Ref | A2 == Ref, A2, nucleotide_flip(A2))) %>% 
     mutate(A1_flip = ifelse(is.na(A1_flip), A1, A1_flip)) %>% 
-    mutate(A2_flip = ifelse(is.na(A2_flip), A2, A2_flip)) %>%
+    mutate(A2_flip = ifelse(is.na(A2_flip), A2, A2_flip)) 
+  
+  cat('\nflipped strand due to allele mismatch at', sum(out$flip, na.rm = T), 'out of', nrow(out), 'SNPs \n')
+  cat('\n')
+  
+  out %>% 
     select(CHROM, SNP, cm, POSrcrs, A1_flip, A2_flip)  %>%
     write_tsv(outfile, col_names = F)
 } else {
-  pos_join %>% 
+  out <- pos_join %>% 
+    mutate(flip = !(A1 == Ref | A2 == Ref)) %>%
     mutate(A1_flip = ifelse(A1 == Ref | A2 == Ref, A1, nucleotide_flip(A1))) %>% 
     mutate(A2_flip = ifelse(A1 == Ref | A2 == Ref, A2, nucleotide_flip(A2))) %>% 
     mutate(A1_flip = ifelse(is.na(A1_flip), A1, A1_flip)) %>% 
-    mutate(A2_flip = ifelse(is.na(A2_flip), A2, A2_flip)) %>%
-    select(CHROM, SNP, cm, POS, A1_flip, A2_flip) %>%
+    mutate(A2_flip = ifelse(is.na(A2_flip), A2, A2_flip)) 
+  
+  cat('\nflipped strand due to allele mismatch at', sum(out$flip, na.rm = T), 'out of', nrow(out), 'SNPs \n')
+  cat('\n')
+  
+  out %>% 
+    select(CHROM, SNP, cm, POS, A1_flip, A2_flip)  %>%
     write_tsv(outfile, col_names = F)
 }
 
