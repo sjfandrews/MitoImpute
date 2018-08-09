@@ -72,6 +72,7 @@ SAMPLE: 'name of input binary plink file'
 DATAIN: 'path/to/input/directory'
 DATAOUT: 'path/to/output/directory'
 REFDATA: 'path/to/reference/panel'
+INFOCUT: Info score threshold
 ```
 
 The default options are for the example dataset.
