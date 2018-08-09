@@ -145,7 +145,7 @@ rule oxford2vcf:
         'plink --gen {input.gen} --sample {input.sample} --hard-call-threshold 0.49 \
         --keep-allele-order --output-chr 26 --recode vcf --out {params.out}'
 
-rule Imputation_QC_Report:
+rule html_Report:
     input:
         script = 'scripts/MT_imputation_report.Rmd',
         typ_map = DATAOUT + "/{sample}/{sample}_typedOnly.map",
