@@ -14,6 +14,8 @@
    - vcf format
 8. Generates a html rmarkdown report
 
+<div style="text-align:center"> ![DAG](dag_mtImpute.svg) </div>
+
 ## Getting Started
 ### Installation
 Be sure to download and install the latest versions of the following software packages:
