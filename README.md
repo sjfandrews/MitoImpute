@@ -1,16 +1,18 @@
 # MitoImpute
 **mtImpute.smk** is a snakemake pipeline for the imputation of mitochondrial genomes using Impute2 Chromosome X protocol. The steps in the pipline include:
 1. Change sex of all samples to male (as males are haploid for the X chromsome)
-2. Converts Bplink (.bed/.bim/.fam) files to:
+2. Extract mtSNPs from Bplink (.bed/.bim/.fam)
+3. Check reference alignment (hg19, Yoruba, or b37, rCRS) of mtSNPs - converts YRI to rCRS.
+4. Converts Bplink files to:
    - oxford format (.gen/.sample)
    - plink format (.map/.ped)
-3. Runs the chromsome X Impute2 imputation protocol. This step uses a custom mitochondrial reference panel constructed using the MitoImputePrep pipeline - see below.
-4. Fixes chromosome label on the Impute2 output
-5. Converts the Imputed files to:
+5. Runs the chromsome X Impute2 imputation protocol. This step uses a custom mitochondrial reference panel constructed using the MitoImputePrep pipeline - see below.
+6. Fixes chromosome label on the Impute2 output
+7. Converts the Imputed files to:
    - Bplink format
    - Plink format
    - vcf format
-6. Generates a html rmarkdown report
+8. Generates a html rmarkdown report
 
 ## Getting Started
 ### Installation
@@ -60,7 +62,7 @@ If the rmarkdown report is not required, run the following code:
 
 ```bash
 cd MitoImpute
-snakemake -s mtImpute.smk --until oxford2vcf oxford2ped oxford2bed
+snakemake -s mtImpute.smk --until oxford2vcf oxford2ped oxford2bed bplink2plink
 ```
 
 Options for the snakemake file are set in the corresponding config file ```mtImpute_config.yaml``` file. The avaliable options are:

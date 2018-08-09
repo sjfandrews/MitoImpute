@@ -9,6 +9,7 @@ SAMPLE = config['SAMPLE']
 DATAIN = config['DATAIN']
 DATAOUT = config['DATAOUT']
 REFDATA = config['REFDATA']
+INFOCUT = config['INFOCUT']
 
 BPLINK = ["bed", "bim", "fam"]
 PLINK = ["map", "ped"]
@@ -16,7 +17,7 @@ OXFORD = ["gen", "sample"]
 RWD = os.getcwd()
 
 ## For running on cluster
-#mkdir .snakejob; snakejob -s mtImpute.smk -j 100 --until oxford2vcf oxford2ped oxford2bed
+#mkdir .snakejob; snakejob -s mtImpute.smk -j 100 --until oxford2vcf oxford2ped oxford2bed bplink2plink --max-jobs-per-second 1 --keep-going
 #shell.prefix('module load plink/1.90 impute2 R/3.4.3; ')
 
 rule all:
@@ -146,7 +147,7 @@ rule oxford2vcf:
 
 rule Imputation_QC_Report:
     input:
-        script = 'scripts/MT_imputation_QC_examples.Rmd',
+        script = 'scripts/MT_imputation_report.Rmd',
         typ_map = DATAOUT + "/{sample}/{sample}_typedOnly.map",
         typ_ped = DATAOUT + "/{sample}/{sample}_typedOnly.ped",
         imp_map = DATAOUT + "/{sample}/Imputed_{sample}.map",
@@ -157,12 +158,13 @@ rule Imputation_QC_Report:
     params:
         rwd = RWD,
         output_dir = DATAOUT + "/{sample}/stats",
-        info_cut = '0'
+        info_cut = INFOCUT,
+        sample = '{sample}'
 
     shell:
         "R -e 'rmarkdown::render("
         """"{input.script}", output_file = "{output}", output_dir = "{params.output_dir}", \
-params = list(rwd = "{params.rwd}", info_cut = "{params.info_cut}", \
+params = list(rwd = "{params.rwd}", info_cut = "{params.info_cut}", sample = "{params.sample}", \
 typ_map = "{input.typ_map}", typ_ped = "{input.typ_ped}", \
 imp_map = "{input.imp_map}", imp_ped = "{input.imp_ped}", \
 imp_info = "{input.imp_info}"))' --slave
