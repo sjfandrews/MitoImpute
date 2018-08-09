@@ -1,14 +1,21 @@
 library(shiny)
 library(tidyverse)
 library(ggforce)
+#library(shinycssloaders)
 library(HiMC); data(nodes)
 
-#setwd('~/Dropbox/src/MitoImpute')
+#setwd('~/Dropbox/src/MitoImpute/shiny')
 #setwd('~/GitCode/MitoImpute/')
 
 MT_haps <- readRDS("MT_haps.rds")
-imp.info <- readRDS("imp.info.rds")
-imp.dat <- readRDS("imp.dat.rds")
+
+## Reference Panel with mtSNPS MAF == 1% 
+imp.info01 <- readRDS("imp.info01.rds")
+imp.dat01 <- readRDS("imp.dat.rds")
+
+## Reference Panel with mtSNPS MAF == 0.5% 
+imp.info005 <- readRDS("imp.info005.rds")
+imp.dat005 <- readRDS("imp.dat005.rds")
 
 # Define UI for app that draws a histogram ----
 ui <- fluidPage(
@@ -137,11 +144,17 @@ ui <- fluidPage(
       
       br(),
       
+      radioButtons("MAF", label = "Reference MAF",
+                   choices = list("1%" = 1, "0.5%" = 2), 
+                   selected = 1),
+      
+      br(), 
+      
       checkboxInput("ShowHiMC", label = "Show Hi-MC", value = TRUE),
       
       br(),
       
-      checkboxInput("SnpType", label = "SNP Type", value = FALSE)
+      checkboxInput("SnpType", label = "SNP Type", value = TRUE)
       
       
     ),
@@ -151,9 +164,11 @@ ui <- fluidPage(
       # Output: Tabset w/ plot, summary, and table ----
       tabsetPanel(type = "tabs",
                   tabPanel("Summary", 
+                           htmlOutput("Platform"),
                            htmlOutput("type0"),
                            textOutput("type2"),
                            textOutput("type3"),
+                           htmlOutput("Proportion"),
                            htmlOutput("PreConc"), 
                            textOutput("PostConc")),
                   tabPanel("Info Score",  plotOutput(outputId = "distPlot"), DT::dataTableOutput("table")),
@@ -170,6 +185,8 @@ server <- function(input, output) {
   mt.haps <- reactive({
     ## Cut put to include snps
     info.cut <- input$bins
+    imp.info <- if(input$MAF == 1){imp.info01}else{imp.info005}
+    imp.dat <- if(input$MAF == 1){imp.dat01}else{imp.dat005}
     
     ## Filter SNPs
     rm.info <- filter(imp.info[[input$select]], info > info.cut)
@@ -184,18 +201,34 @@ server <- function(input, output) {
   })
   
     ## Summary Text
+  output$Platform = renderUI({
+    HTML(paste0(tags$br(), "Platform: ", input$select))
+  })
   output$type0 = renderUI({
+    imp.info <- if(input$MAF == 1){imp.info01}else{imp.info005}
     SnpType <- filter(imp.info[[input$select]], type == 0)
     HTML(paste0(tags$br(), "SNPs in Reference Panel only: ", nrow(SnpType)))
   })
   output$type2 = renderText({
+    imp.info <- if(input$MAF == 1){imp.info01}else{imp.info005}
     SnpType <- filter(imp.info[[input$select]], type == 2)
     paste0("SNPs in Reference & Sample Panel only: ", nrow(SnpType))
   })
   output$type3 = renderText({
+    imp.info <- if(input$MAF == 1){imp.info01}else{imp.info005}
     SnpType <- filter(imp.info[[input$select]], type == 3)
     paste0("SNPs in Sample Panel only: ", nrow(SnpType))
   })
+  
+  output$Proportion = renderUI({
+    info.cut <- input$bins
+    imp.info <- if(input$MAF == 1){imp.info01[[input$select]]}else{imp.info005[[input$select]]}
+    HTML(paste0(tags$br(), nrow(filter(imp.info, info > info.cut)), ' out of ', nrow(imp.info), ' mtSNPs (', 
+                nrow(filter(imp.info, info > info.cut & himc == 'yes')), '/', nrow(filter(imp.info, himc == 'yes')), ' Hi-MC mtSNPs) are retained using an Info threshold of ', info.cut 
+                ))
+  })
+  
+  
   output$PreConc = renderUI({
     hap.concordance <- MT_haps[[input$select]] %>%
       count(haplogroup_typ, haplogroup_wgs) %>% 
@@ -219,10 +252,13 @@ server <- function(input, output) {
     HTML(paste0("Typed + Imputed vs WGS Haplogroup concordance: ", as.character(hap.concordance[2,2]), '%'))
   })
   
+  ##===============================================##  
   ## Plot displaying info score across mitochondrial genome
+  ##===============================================##  
   output$distPlot <- renderPlot({
     
     info.cut <- input$bins
+    imp.info <- if(input$MAF == 1){imp.info01}else{imp.info005}
     
     if(input$ShowHiMC == F){
       ggplot(imp.info[[input$select]], 
@@ -250,18 +286,21 @@ server <- function(input, output) {
   })
   
   output$table <- DT::renderDataTable(DT::datatable({
+    imp.info <- if(input$MAF == 1){imp.info01}else{imp.info005}
+    
     if(input$ShowHiMC == F){
       imp.info[[input$select]] %>% 
-        select(position, a0, a1, exp_freq_a1, info, type, info_type0, himc)
+        select(position, a0, a1, exp_freq_a1, info, type, info_type0, himc, Haplogroup)
     }else{
       imp.info[[input$select]] %>% 
-        select(position, a0, a1, exp_freq_a1, info, type, info_type0, himc) %>%
+        select(position, a0, a1, exp_freq_a1, info, type, info_type0, himc, Haplogroup) %>%
         filter(himc == 'yes')
       
     }
   }))
-  
+  ##===============================================##  
   ## Haplogroup Concordance plot - Typed vs WGS
+  ##===============================================##  
   output$PrePlot <- renderPlot({
     ## Count pairs of haplogroups of imputed and WGS assignments
     hap.match <- MT_haps[[input$select]] %>%
@@ -295,7 +334,9 @@ server <- function(input, output) {
       mutate(match = haplogroup_typ == haplogroup_wgs) 
   }))
   
+  ##===============================================##  
   ## Haplogroup Concordance plot - Imputed vs WGS
+  ##===============================================##  
   output$PostPlot <- renderPlot({
     ## Count pairs of haplogroups of imputed and WGS assignments
     hap.match <- mt.haps() %>%

@@ -20,11 +20,12 @@ params:
   sample: sample
   rwd: rwd
 ---
+
 # `r params$sample`
 Mitochdonrial SNP Imputation report of `r params$sample` generated on `r Sys.Date()`. Imputation was performed using the [MitoImpute](https://github.com/sjfandrews/MitoImpute) [IMPUTE2](http://mathgen.stats.ox.ac.uk/impute/impute_v2.html) pipeline.  
 <br> 
 ```{r setup, echo=FALSE, warning =FALSE, message=FALSE}
-knitr::opts_knit$set(root.dir = params$rwd)
+#knitr::opts_knit$set(root.dir = params$rwd)
 
 library(tidyverse)
 library(ggplot2)
