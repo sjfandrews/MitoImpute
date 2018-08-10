@@ -19,13 +19,14 @@ params:
   info_cut: info_cut  
   sample: sample
   rwd: rwd
+  out: out
 ---
 
 # `r params$sample`
 Mitochdonrial SNP Imputation report of `r params$sample` generated on `r Sys.Date()`. Imputation was performed using the [MitoImpute](https://github.com/sjfandrews/MitoImpute) [IMPUTE2](http://mathgen.stats.ox.ac.uk/impute/impute_v2.html) pipeline.  
 <br> 
 ```{r setup, echo=FALSE, warning =FALSE, message=FALSE}
-#knitr::opts_knit$set(root.dir = params$rwd)
+knitr::opts_knit$set(root.dir = params$rwd)
 
 library(tidyverse)
 library(ggplot2)
@@ -40,14 +41,39 @@ Haplogroup = c("L2", "L3", "K1", "M", "K", "B2", "JT", "R0", "W", "A2", "U", "N2
 
 ```
 
+```{r, inmport_snps, echo=FALSE}
+generate_snp_data_fixed <- function (map_file, ped_file) 
+{
+  map <- read.csv(map_file, sep = "\t", header = FALSE, stringsAsFactors = FALSE)
+  header_row <- c("Family", "Individual", "Father", "Mother", 
+                  "Sex", "Phenotype")
+  snps = map[, 4]
+  new_header = c(header_row, snps)
+  ped <- read.csv(ped_file, sep = " ", header = FALSE, stringsAsFactors = FALSE, colClasses = 'character')
+  range1 = seq(1, 6, by = 1)
+  snp_data = data.frame(seq(1, nrow(ped), by = 1))
+  for (i in range1) {
+    snp_data[, i] = ped[, i]
+  }
+  range2 = seq(7, ncol(ped), by = 2)
+  for (i in range2) {
+    index = ((i - 7)/2) + 1
+    snp_data[, index + 6] = paste(ped[, i], ped[, i + 1])
+  }
+  names(snp_data) <- new_header
+  return(snp_data)
+}
+
+```
+
 ```{r readin, echo=FALSE, warning =FALSE, message=FALSE}
 ##  Read in - Typed only
 #     Plink .ped files 
-samp_typ.ped <- generate_snp_data(params$typ_map, params$typ_ped)
+samp_typ.ped <- generate_snp_data_fixed(params$typ_map, params$typ_ped)
 
 ##  Read in - Imputed 
 #     Plink .ped files 
-samp_imp.ped <- generate_snp_data(params$imp_map, params$imp_ped) 
+samp_imp.ped <- generate_snp_data_fixed(params$imp_map, params$imp_ped) 
 samp_imp.ped <- samp_imp.ped[,-c(grep("\\<189\\>", colnames(samp_imp.ped)), grep("\\<16183\\>", colnames(samp_imp.ped)))]
 samp_imp.info <- read_delim(params$imp_info, delim = " ")
 
@@ -123,6 +149,14 @@ MTimp.classifications <- HiMC::getClassifications(samp_imp.filtered)
 MT_haps <- MTtyp.classifications %>% 
   left_join(MTimp.classifications, by = 'Individual', suffix = c("_typ", "_imp")) %>% 
   as.tibble()
+```
+
+```{r out, echo=FALSE, warning =FALSE, message=FALSE}
+
+## Write out Haplogroups
+out <- full_join(MTimp.classifications, samp_imp.filtered, by = 'Individual')
+write_tsv(out, paste0(params$out, '/', params$sample, '_Haplogroups.txt'))
+
 ```
 
 **Table 1:** Count of macro haplogroups in Sample pre- and post-imputation
