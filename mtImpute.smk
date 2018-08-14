@@ -34,7 +34,7 @@ rule SexFam:
         awk '{{$5 = "1"; print}}' {input} > {output}
     """
 ## Extract SNPs on mitochondrial genome (26)
-## Set missing genotype to 'z' default is 0 remove SNPs where allels are non-ACTG, including 0
+## Remove SNPs where allels are non-ACTG
 rule chrMT:
     input:
         bplink = expand(DATAIN + "/{{sample}}.{ext}", ext=BPLINK),
@@ -46,7 +46,7 @@ rule chrMT:
         out = DATAOUT + "/{sample}/chrMT_{sample}"
     shell:
         'plink --bfile {params.inFile} --fam {input.fam} \
-        --chr 26 --output-chr 26 --missing-genotype z --snps-only just-acgt \
+        --chr 26 --output-chr 26 --snps-only just-acgt \
         --keep-allele-order --make-bed --out {params.out}'
 
 rule yri2rcrs_flip:
