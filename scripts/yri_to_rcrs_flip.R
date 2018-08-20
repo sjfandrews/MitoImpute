@@ -6,6 +6,7 @@ suppressPackageStartupMessages(library(tidyverse))
 ## 	Converting Yoruba (YRI - AF347015) SNP positions
 ##	to the revised cambrige reference sequence (rCRS)
 ##	https://www.mitomap.org/MITOMAP/YorubanConversion
+##  http://haplogrep.uibk.ac.at/blog/rcrs-vs-rsrs-vs-hg19/
 #	Yoruba		Cambridge
 #	1-309		Same
 #	310			Deleted
@@ -47,22 +48,22 @@ bimfile <- args[2]
 outfile <- args[3]
 
 ##  Read in reference
-ref <- read_tsv(reference, col_names = F) %>% 
+ref <- read_tsv(reference, col_names = F) %>%
   rename(CHROM = X1, POS = X2, Ref = X3, Alt = X4, AC = X5, AN = X6, AF = X7)
 
 ## Read in sample bim file
-bim <- read_table2(bimfile, col_names = F) %>% 
-  rename(CHROM = X1, SNP = X2, cm = X3, POS = X4, A1 = X5, A2 = X6) %>% 
+bim <- read_table2(bimfile, col_names = F) %>%
+  rename(CHROM = X1, SNP = X2, cm = X3, POS = X4, A1 = X5, A2 = X6) %>%
   filter(CHROM == 26) %>% arrange(POS)
 
 ## Convert from YRI to rCRS
 bim$POSrcrs <- sapply(bim$POS, yri_rcrs)
 
 ## Join bim to referenece SNPs
-pos_join <- left_join(bim, select(ref, -CHROM), by = 'POS') 
+pos_join <- left_join(bim, select(ref, -CHROM), by = 'POS')
 rcrs_join <- left_join(bim, select(ref, -CHROM), by = c('POSrcrs' = 'POS'))
 
-## Percentage of SNPs alligning to reference panel: 
+## Percentage of SNPs alligning to reference panel:
 #   after YRI to rCRS conversion
 perc.rcrs <- sum(!is.na(rcrs_join$AF)) / nrow(rcrs_join)
 #   prior YRI to rCRS conversion
@@ -80,33 +81,31 @@ if(perc.rcrs > perc.pos){
 cat('\n')
 
 if(perc.rcrs > perc.pos){
-  out <- rcrs_join %>% 
+  out <- rcrs_join %>%
     mutate(flip = !(A1 == Ref | A2 == Ref)) %>%
-    mutate(A1_flip = ifelse(A1 == Ref | A2 == Ref, A1, nucleotide_flip(A1))) %>% 
-    mutate(A2_flip = ifelse(A1 == Ref | A2 == Ref, A2, nucleotide_flip(A2))) %>% 
-    mutate(A1_flip = ifelse(is.na(A1_flip), A1, A1_flip)) %>% 
-    mutate(A2_flip = ifelse(is.na(A2_flip), A2, A2_flip)) 
-  
+    mutate(A1_flip = ifelse(A1 == Ref | A2 == Ref, A1, nucleotide_flip(A1))) %>%
+    mutate(A2_flip = ifelse(A1 == Ref | A2 == Ref, A2, nucleotide_flip(A2))) %>%
+    mutate(A1_flip = ifelse(is.na(A1_flip), A1, A1_flip)) %>%
+    mutate(A2_flip = ifelse(is.na(A2_flip), A2, A2_flip))
+
   cat('\nflipped strand due to allele mismatch at', sum(out$flip, na.rm = T), 'out of', nrow(out), 'SNPs \n')
   cat('\n')
-  
-  out %>% 
+
+  out %>%
     select(CHROM, SNP, cm, POSrcrs, A1_flip, A2_flip)  %>%
     write_tsv(outfile, col_names = F)
 } else {
-  out <- pos_join %>% 
+  out <- pos_join %>%
     mutate(flip = !(A1 == Ref | A2 == Ref)) %>%
-    mutate(A1_flip = ifelse(A1 == Ref | A2 == Ref, A1, nucleotide_flip(A1))) %>% 
-    mutate(A2_flip = ifelse(A1 == Ref | A2 == Ref, A2, nucleotide_flip(A2))) %>% 
-    mutate(A1_flip = ifelse(is.na(A1_flip), A1, A1_flip)) %>% 
-    mutate(A2_flip = ifelse(is.na(A2_flip), A2, A2_flip)) 
-  
+    mutate(A1_flip = ifelse(A1 == Ref | A2 == Ref, A1, nucleotide_flip(A1))) %>%
+    mutate(A2_flip = ifelse(A1 == Ref | A2 == Ref, A2, nucleotide_flip(A2))) %>%
+    mutate(A1_flip = ifelse(is.na(A1_flip), A1, A1_flip)) %>%
+    mutate(A2_flip = ifelse(is.na(A2_flip), A2, A2_flip))
+
   cat('\nflipped strand due to allele mismatch at', sum(out$flip, na.rm = T), 'out of', nrow(out), 'SNPs \n')
   cat('\n')
-  
-  out %>% 
+
+  out %>%
     select(CHROM, SNP, cm, POS, A1_flip, A2_flip)  %>%
     write_tsv(outfile, col_names = F)
 }
-
-
