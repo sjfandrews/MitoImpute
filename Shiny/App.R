@@ -17,6 +17,10 @@ imp.dat01 <- readRDS("imp.dat.rds")
 imp.info005 <- readRDS("imp.info005.rds")
 imp.dat005 <- readRDS("imp.dat005.rds")
 
+## Reference Panel with mtSNPS MAF == 0.1% 
+imp.info001 <- readRDS("imp.info001.rds")
+imp.dat001 <- readRDS("imp.dat001.rds")
+
 # Define UI for app that draws a histogram ----
 ui <- fluidPage(
   
@@ -145,7 +149,7 @@ ui <- fluidPage(
       br(),
       
       radioButtons("MAF", label = "Reference MAF",
-                   choices = list("1%" = 1, "0.5%" = 2), 
+                   choices = list("1%" = 1, "0.5%" = 2, "0.1%" = 3), 
                    selected = 1),
       
       br(), 
@@ -185,17 +189,20 @@ server <- function(input, output) {
   mt.haps <- reactive({
     ## Cut put to include snps
     info.cut <- input$bins
-    imp.info <- if(input$MAF == 1){imp.info01}else{imp.info005}
-    imp.dat <- if(input$MAF == 1){imp.dat01}else{imp.dat005}
+    select <- input$select
+    MAF <- input$MAF
+    
+    imp.info <- if(MAF == 1){imp.info01}else if(MAF == 2){imp.info005}else{imp.info001}
+    imp.dat <- if(MAF == 1){imp.dat01}else if(MAF == 2){imp.dat005}else{imp.dat001}
     
     ## Filter SNPs
-    rm.info <- filter(imp.info[[input$select]], info > info.cut)
-    imp.dat_filt <- imp.dat[[input$select]][ ,colnames(imp.dat[[input$select]]) %in% 
+    rm.info <- filter(imp.info[[select]], info > info.cut)
+    imp.dat_filt <- imp.dat[[select]][ ,colnames(imp.dat[[select]]) %in% 
                                                c('Individual', rm.info$position)]
     
     ## Assign haplogroups
     MTimp.classifications <- HiMC::getClassifications(as.data.frame(imp.dat_filt))
-    mt.haps <- MT_haps[[input$select]] %>% 
+    mt.haps <- MT_haps[[select]] %>% 
       left_join(MTimp.classifications, by = 'Individual') %>% 
       rename(haplogroup_imp = haplogroup, full_path_imp = full_path)
   })
@@ -205,24 +212,24 @@ server <- function(input, output) {
     HTML(paste0(tags$br(), "Platform: ", input$select))
   })
   output$type0 = renderUI({
-    imp.info <- if(input$MAF == 1){imp.info01}else{imp.info005}
+    imp.info <- if(input$MAF == 1){imp.info01}else if(input$MAF == 2){imp.info005}else{imp.info001}
     SnpType <- filter(imp.info[[input$select]], type == 0)
     HTML(paste0(tags$br(), "SNPs in Reference Panel only: ", nrow(SnpType)))
   })
   output$type2 = renderText({
-    imp.info <- if(input$MAF == 1){imp.info01}else{imp.info005}
+    imp.info <- if(input$MAF == 1){imp.info01}else if(input$MAF == 2){imp.info005}else{imp.info001}
     SnpType <- filter(imp.info[[input$select]], type == 2)
     paste0("SNPs in Reference & Sample Panel only: ", nrow(SnpType))
   })
   output$type3 = renderText({
-    imp.info <- if(input$MAF == 1){imp.info01}else{imp.info005}
+    imp.info <- if(input$MAF == 1){imp.info01}else if(input$MAF == 2){imp.info005}else{imp.info001}
     SnpType <- filter(imp.info[[input$select]], type == 3)
     paste0("SNPs in Sample Panel only: ", nrow(SnpType))
   })
   
   output$Proportion = renderUI({
     info.cut <- input$bins
-    imp.info <- if(input$MAF == 1){imp.info01[[input$select]]}else{imp.info005[[input$select]]}
+    imp.info <- if(input$MAF == 1){imp.info01[[input$select]]}else if(input$MAF == 2){imp.info005[[input$select]]}else{imp.info001[[input$select]]}
     HTML(paste0(tags$br(), nrow(filter(imp.info, info > info.cut)), ' out of ', nrow(imp.info), ' mtSNPs (', 
                 nrow(filter(imp.info, info > info.cut & himc == 'yes')), '/', nrow(filter(imp.info, himc == 'yes')), ' Hi-MC mtSNPs) are retained using an Info threshold of ', info.cut 
                 ))
@@ -258,10 +265,14 @@ server <- function(input, output) {
   output$distPlot <- renderPlot({
     
     info.cut <- input$bins
-    imp.info <- if(input$MAF == 1){imp.info01}else{imp.info005}
+    select <- input$select
+    MAF <- input$MAF
+    ShowHiMC <- input$ShowHiMC
     
-    if(input$ShowHiMC == F){
-      ggplot(imp.info[[input$select]], 
+    imp.info <- if(MAF == 1){imp.info01}else if(MAF == 2){imp.info005}else{imp.info001}
+
+    if(ShowHiMC == F){
+      ggplot(imp.info[[select]], 
              aes(x = position, y = info_comb, size = exp_freq_a1,
                  colour = if(input$SnpType == F){info_comb > info.cut}
                  else{as.factor(type)})) + 
@@ -271,7 +282,7 @@ server <- function(input, output) {
         geom_hline(yintercept = info.cut, linetype = 2, colour = 'red') +
         guides(colour=guide_legend(title="SNP Type")) 
     }else{
-      ggplot(imp.info[[input$select]], 
+      ggplot(imp.info[[select]], 
              aes(x = position, y = info_comb, size = exp_freq_a1, alpha = himc, 
                  colour = if(input$SnpType == F){info_comb > info.cut}
                  else{as.factor(type)})) + 
@@ -286,7 +297,8 @@ server <- function(input, output) {
   })
   
   output$table <- DT::renderDataTable(DT::datatable({
-    imp.info <- if(input$MAF == 1){imp.info01}else{imp.info005}
+    MAF <- input$MAF
+    imp.info <- if(MAF == 1){imp.info01}else if(MAF == 2){imp.info005}else{imp.info001}
     
     if(input$ShowHiMC == F){
       imp.info[[input$select]] %>% 
@@ -302,8 +314,10 @@ server <- function(input, output) {
   ## Haplogroup Concordance plot - Typed vs WGS
   ##===============================================##  
   output$PrePlot <- renderPlot({
+    select <- input$select
+    
     ## Count pairs of haplogroups of imputed and WGS assignments
-    hap.match <- MT_haps[[input$select]] %>%
+    hap.match <- MT_haps[[select]] %>%
       count(haplogroup_typ, haplogroup_wgs) %>% 
       mutate(perc = round((n/sum(n))*100,2)) %>% 
       mutate(match = haplogroup_typ == haplogroup_wgs) 
