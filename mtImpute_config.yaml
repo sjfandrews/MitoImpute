@@ -1,3 +1,4 @@
+# snakemake -s mtImpute.smk --configfile mtImpute_config.yaml
 ## Config file for setting options in the mtImpute snakemake pipeline
 
 ## SAMPLE: File name of plink files
@@ -10,6 +11,8 @@ DATAIN: 'example/SamplePanel'
 DATAOUT: "example/imputed"
 REFDATA: "example/ReferencePanel"
 INFOCUT: 0
+ITER: 2
+BURNIN: 1
 
 ## Uncommenting below will use the full reference panel
 #REFDATA: "ReferencePanel"

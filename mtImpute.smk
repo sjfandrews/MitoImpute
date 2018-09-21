@@ -11,6 +11,8 @@ DATAIN = config['DATAIN']
 DATAOUT = config['DATAOUT']
 REFDATA = config['REFDATA']
 INFOCUT = config['INFOCUT']
+ITER = config['ITER']
+BURNIN = config['BURNIN']
 
 BPLINK = ["bed", "bim", "fam"]
 PLINK = ["map", "ped"]
@@ -98,10 +100,13 @@ rule Impute2:
         DATAOUT + "/{sample}/{sample}_imputed_samples",
         DATAOUT + "/{sample}/{sample}_imputed_info"
     params:
-        out = DATAOUT + "/{sample}/{sample}_imputed"
+        out = DATAOUT + "/{sample}/{sample}_imputed",
+        iter = ITER,
+        burnin = BURNIN
     shell:
         'impute2 -chrX -m {input.m} -h {input.h} -l {input.l} -g {input.g} \
-        -sample_g {input.sample} -int 1 16569 -Ne 20000 -o {params.out}'
+        -sample_g {input.sample} -int 1 16569 -Ne 20000 -o {params.out} \
+        -iter {params.iter} -burnin {params.burnin}'
 
 rule FixChromName:
     input:

@@ -75,6 +75,8 @@ DATAIN: 'path/to/input/directory'
 DATAOUT: 'path/to/output/directory'
 REFDATA: 'path/to/reference/panel'
 INFOCUT: Info score threshold
+ITER: Total number of MCMC iterations to perform, including burn-in.
+BURNIN: Number of MCMC iteractions to discard as burn-in
 ```
 
 The default options are for the example dataset.
