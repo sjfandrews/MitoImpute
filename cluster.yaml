@@ -6,4 +6,8 @@ __default__:
   mem: 3000
   time: '30'
 Impute2:
-  time: '24:00'
+  time: '90:00'
+  cores: 2
+  mem: 16000
+html_Report:
+  partition: manda
