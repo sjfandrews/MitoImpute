@@ -13,6 +13,7 @@ REFDATA = config['REFDATA']
 INFOCUT = config['INFOCUT']
 ITER = config['ITER']
 BURNIN = config['BURNIN']
+KHAP = config['BURNIN']
 
 BPLINK = ["bed", "bim", "fam"]
 PLINK = ["map", "ped"]
@@ -102,11 +103,12 @@ rule Impute2:
     params:
         out = DATAOUT + "/{sample}/{sample}_imputed",
         iter = ITER,
-        burnin = BURNIN
+        burnin = BURNIN,
+        khap = KHAP
     shell:
         'impute2 -chrX -m {input.m} -h {input.h} -l {input.l} -g {input.g} \
         -sample_g {input.sample} -int 1 16569 -Ne 20000 -o {params.out} \
-        -iter {params.iter} -burnin {params.burnin}'
+        -iter {params.iter} -burnin {params.burnin} -k_hap {params.khap}'
 
 rule FixChromName:
     input:

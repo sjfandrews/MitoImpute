@@ -48,16 +48,16 @@ HiMC <- tibble(
 ## ===============================================## 
 ## Specificy files  
 ## ===============================================## 
-#wd <- '~/LOAD_minerva/dummy/shea/Projects/3_mitoWAX/2_DerivedData/GSA'
+wd <- '~/LOAD_minerva/dummy/shea/Projects/3_mitoWAX/2_DerivedData/ADGC_180920_iter2'
 setwd(wd)
 
-#sample <- 'msmd_batch2'
+sample <- 'TARC1_080213.ATGC'
 typ_map <- paste0(sample, '/', sample, '_typedOnly.map') ## Map file for pre-imputed mtSNPs - sample_typedOnly.map
 typ_ped <- paste0(sample, '/', sample, '_typedOnly.ped') ## Ped file for pre-imputed mtSNPs - sample_typedOnly.ped
 imp_map <- paste0(sample, '/', 'Imputed_', sample, '.map') ## Map file for post-imputed mtSNPs - Imputed_{sample}.map
 imp_ped <- paste0(sample, '/', 'Imputed_', sample, '.ped') ## Ped file for post-imputed mtSNPs - Imputed_{sample}.ped
 imp_info <- paste0(sample, '/', sample, '_imputed_info')
-#info_cut <- 0.3 ## info score cut off 
+info_cut <- 0.3 ## info score cut off 
 #info_cut <- 0 ## info score cut off 
 
 ## ===============================================## 
