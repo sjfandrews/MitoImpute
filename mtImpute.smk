@@ -21,7 +21,7 @@ RWD = os.getcwd()
 
 ## For running on cluster
 #mkdir .snakejob; snakejob -s mtImpute.smk -j 100 --until oxford2vcf oxford2ped oxford2bed bplink2plink --max-jobs-per-second 1 --keep-going
-#shell.prefix('module load plink/1.90 impute2 R/3.4.3; ')
+shell.prefix('module load plink/1.90 impute2 R/3.4.3; ')
 
 rule all:
     input:
