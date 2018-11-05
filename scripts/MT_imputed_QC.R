@@ -3,7 +3,8 @@ library(readxl)
 library(HiMC); data(nodes)
 
 ##  Function
-source('/Users/u5015730/GitCode/timmci/scripts/Shea_Imputation/R/import_snps.R', chdir = TRUE)
+#source('/Users/u5015730/GitCode/timmci/scripts/Shea_Imputation/R/import_snps.R', chdir = TRUE)
+source('~/GitCode/MitoImpute/scripts/import_snps.R', chdir = TRUE)
 
 ##  Function for calculating mathews correlation coefficent (MCC)
 mccr <- function (act, pred) 
