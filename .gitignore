@@ -1,13 +1,9 @@
 .DS_Store
 .Rhistory
 .snakemake/*
-data/*
 DerivedData/SamplePanel/*
-DerivedData/test/*
-DerivedData/ThousandGenomes/*
-www.well.ox.ac.uk/*
 example/imputed/*
-Shiny/.Rapp.history
-Shiny/.Rhistory
 sample_config.yaml
 Rplots.pdf
+cluster.yaml
+depreciated/*

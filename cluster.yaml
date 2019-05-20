@@ -9,5 +9,3 @@ Impute2:
   time: '90:00'
   cores: 2
   mem: 16000
-html_Report:
-  partition: manda
