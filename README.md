@@ -12,7 +12,7 @@
    - Bplink format
    - Plink format
    - vcf format
-8. Generates a html rmarkdown report
+8. Generates plots for Info Score and assigned Haplogroups
 
 <img align="center" src=dag_mtImpute.svg alt="DAG">
 
@@ -22,27 +22,24 @@ Be sure to download and install the latest versions of the following software pa
 1. [Python 3](https://www.python.org/downloads/)
 2. [Snakemake](https://snakemake.readthedocs.io/en/stable/getting_started/installation.html)
 3. [R](https://cran.r-project.org/)
-4. [Rstudio](https://www.rstudio.com/products/rstudio/download/)
-5. [PLINK](https://www.cog-genomics.org/plink2)
-6. [Impute2](https://mathgen.stats.ox.ac.uk/impute/impute_v2.html#download)
+4. [PLINK](https://www.cog-genomics.org/plink2)
+5. [Impute2](https://mathgen.stats.ox.ac.uk/impute/impute_v2.html#download)
 
-Rstudio is recomended for running the MitoImputeShiny app. Plink and Impute2 executibles should be located within the the /usr/local/bin/ directory. The following code can be used to move the executibles: ```cp </path/to/executible> /usr/local/bin/```
+Plink and Impute2 executibles should be located within the the /usr/local/bin/ directory. The following code can be used to move the executibles: ```cp </path/to/executible> /usr/local/bin/```
 
 The following R packages are also required:
 1. [tidyverse](https://www.tidyverse.org/packages/)
-2. [rmarkdown](https://cran.r-project.org/web/packages/rmarkdown/index.html)
-4. [shiny](https://cran.r-project.org/web/packages/shiny/index.html)
-5. [Hi-MC](https://github.com/vserch/himc)
-6. [ggforce](https://github.com/thomasp85/ggforce)
+2. [Hi-MC](https://github.com/vserch/himc)
+3. [ggfittext](https://cran.r-project.org/web/packages/ggfittext/index.html)
 
-Note that the development versions of ggforce (required for plotting alluvial diagrams) and Hi-MC (required for mitochondrial haplogroup assignment) are required. These packages can be isntalled directly from github using devtools.
+Note that the development versions of Hi-MC (required for mitochondrial haplogroup assignment) are required.
 
 ```r
 ## Install tidyverse, rmarkdown, and devtools
-install.packages(c("tidyverse", "shiny", "rmarkdown", "devtools"))
+install.packages(c("tidyverse", "ggfittext", "devtools"))
 
 ## Install HiMC and ggforce
-devtools::install_github(c("vserch/himc/HiMC", 'thomasp85/ggforce'))
+devtools::install_github(c("vserch/himc/HiMC"))
 ```
 
 Once all the prerequiste software is isntalled, MitoImpute can be installed on a git-enabled machine by typeing:
@@ -57,14 +54,7 @@ To impute mitochondrial SNPs in a study dataset, run the following code:
 
 ```bash
 cd MitoImpute
-snakemake -s mtImpute.smk
-```
-
-If the rmarkdown report is not required, run the following code:
-
-```bash
-cd MitoImpute
-snakemake -s mtImpute.smk --until oxford2vcf oxford2ped oxford2bed bplink2plink
+snakemake -s mtImpute.smk --configfile mtImpute_config.yaml
 ```
 
 Options for the snakemake file are set in the corresponding config file ```mtImpute_config.yaml``` file. The avaliable options are:
@@ -91,13 +81,5 @@ setting REFDATA in the ```mtImpute_config.yaml``` file to ```ReferencePanel``` w
 
 Further details on the pipeline for constructing the reference panel can be found in the [MitoImputePrep](https://github.com/sjfandrews/MitoImputePrep) repo.
 
-### MitoImpute Shiny
-MitoImputeShiny is a R shiny application for displaying the results of the 1000 Genomes MitoImpute validation pipeline. As detailed in the [MitoImputePrep](https://github.com/sjfandrews/MitoImputePrep) pipline, [Strand Files](http://www.well.ox.ac.uk/~wrayner/strand/), which provide the strand orientation and position of variants of the most common genotyping platform on build 37, were used to obtain a list of mtSNPs for each platform. The platform specific mtSNPs are then extracted from the Thousand Genome mitochondrial Sequences and Using these 'Typed SNPs', additional mitochondrial SNPs were then imputed using the reference panel. The Shiny application displays the concordance of haplogroup assignments made using the full mitochondrial sequence data vs using only the Typed mtSNPs or Typed + Imputed mtSNPs.
-
-To run MitoImputeShiny, in Rstudio run the following code:
-
-```r
-library(shiny)
-setwd("~/path/to/MitoImpute/Shiny")
-runApp()
-```
+#### Cluster Execution
+For excuting this pipline on a cluster computing environment, refer to [SnakeMake's readme](https://snakemake.readthedocs.io/en/stable/executable.html#cluster-execution).
