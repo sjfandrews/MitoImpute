@@ -13,6 +13,7 @@ REFDATA: "example/ReferencePanel"
 INFOCUT: 0
 ITER: 2
 BURNIN: 1
+KHAP: 500
 
 ## Uncommenting below will use the full reference panel
 #REFDATA: "ReferencePanel"

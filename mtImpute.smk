@@ -13,7 +13,7 @@ REFDATA = config['REFDATA']
 INFOCUT = config['INFOCUT']
 ITER = config['ITER']
 BURNIN = config['BURNIN']
-KHAP = config['BURNIN']
+KHAP = config['KHAP']
 
 BPLINK = ["bed", "bim", "fam"]
 PLINK = ["map", "ped"]
