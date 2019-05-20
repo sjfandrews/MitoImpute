@@ -42,7 +42,7 @@ install.packages(c("tidyverse", "ggfittext", "devtools"))
 devtools::install_github(c("vserch/himc/HiMC"))
 ```
 
-Once all the prerequiste software is isntalled, MitoImpute can be installed on a git-enabled machine by typeing:
+Once all the prerequiste software is installed, MitoImpute can be installed on a git-enabled machine by typeing:
 
 ```bash
 git clone https://github.com/sjfandrews/MitoImpute
