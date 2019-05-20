@@ -1,9 +1,4 @@
 '''Snakefile for MitoImpute Version 0.1'''
-# snakemake -s mtImpute.smk
-# snakemake -s mtImpute.smk --configfile sample_config.yaml
-# snakemake -s mtImpute.smk --dag | dot -Tsvg > dag_mtImpute.svg
-
-import os
 
 configfile: 'mtImpute_config.yaml'
 SAMPLE = config['SAMPLE']
@@ -18,7 +13,6 @@ KHAP = config['KHAP']
 BPLINK = ["bed", "bim", "fam"]
 PLINK = ["map", "ped"]
 OXFORD = ["gen", "sample"]
-RWD = os.getcwd()
 
 ## For running on cluster
 #mkdir .snakejob; snakejob -s mtImpute.smk -j 100 --until oxford2vcf oxford2ped oxford2bed bplink2plink --max-jobs-per-second 1 --keep-going
@@ -29,7 +23,10 @@ rule all:
         expand(DATAOUT + "/{sample}/Imputed_{sample}.{ext}", ext=BPLINK, sample=SAMPLE),
         expand(DATAOUT + "/{sample}/Imputed_{sample}.{ext}", ext=PLINK, sample=SAMPLE),
         expand(DATAOUT + "/{sample}/Imputed_{sample}.vcf", sample=SAMPLE),
-        expand(DATAOUT + "/{sample}/stats/{sample}_mtImputed_QC.html", sample=SAMPLE),
+        expand(DATAOUT + "/{sample}/stats/{sample}_Info.png", sample=SAMPLE),
+        expand(DATAOUT + "/{sample}/stats/{sample}_InfoHiMC.png", sample=SAMPLE),
+        expand(DATAOUT + "/{sample}/stats/{sample}_Haplogroups.txt", sample=SAMPLE),
+        expand(DATAOUT + "/{sample}/stats/{sample}_HaplogroupMatch.png", sample=SAMPLE)
 
 rule SexFam:
     input: DATAIN + "/{sample}.fam"
@@ -37,6 +34,7 @@ rule SexFam:
     shell: """
         awk '{{$5 = "1"; print}}' {input} > {output}
     """
+
 ## Extract SNPs on mitochondrial genome (26)
 ## Remove SNPs where allels are non-ACTG
 rule chrMT:
@@ -53,6 +51,7 @@ rule chrMT:
         --chr 26 --output-chr 26 --snps-only just-acgt \
         --keep-allele-order --make-bed --out {params.out}'
 
+## Check if mtSNPs are mapped to rCRS, if not liftover
 rule yri2rcrs_flip:
     input:
         script = 'scripts/yri_to_rcrs_flip.R',
@@ -63,6 +62,7 @@ rule yri2rcrs_flip:
     shell:
         'Rscript {input.script} {input.referenceSnps} {input.bim} {output.bim}'
 
+## Convert sample binary plink files to oxford format
 rule bplink2oxford:
     input:
         bplink = expand(DATAOUT + "/{{sample}}/chrMT_{{sample}}.{ext}", ext=BPLINK),
@@ -76,6 +76,7 @@ rule bplink2oxford:
         'plink --bfile {params.inFile} --bim {input.bim} \
         --recode oxford --keep-allele-order --out {params.out}'
 
+## Convert sample binary plink files to .map/.ped files
 rule bplink2plink:
     input:
         bplink = expand(DATAOUT + "/{{sample}}/chrMT_{{sample}}.{ext}", ext=BPLINK),
@@ -89,6 +90,7 @@ rule bplink2plink:
         'plink --bfile {params.inFile} --bim {input.bim} \
         --recode --keep-allele-order --out {params.out}'
 
+## Use Impute to impute mtSNPs
 rule Impute2:
     input:
         m = expand('{RefData}/MtMap.txt', RefData=REFDATA),
@@ -110,6 +112,7 @@ rule Impute2:
         -sample_g {input.sample} -int 1 16569 -Ne 20000 -o {params.out} \
         -iter {params.iter} -burnin {params.burnin} -k_hap {params.khap}'
 
+## Change MT chromsome name to '26'
 rule FixChromName:
     input:
         InFile = DATAOUT + "/{sample}/{sample}_imputed"
@@ -119,6 +122,7 @@ rule FixChromName:
         awk '{{$1 = "26"; print}}' {input.InFile} > {output.OutFile}
     """
 
+## Convert Oxford files to binary Plink files
 rule oxford2bed:
     input:
         gen = DATAOUT + "/{sample}/{sample}_imputed_ChromFixed",
@@ -131,6 +135,7 @@ rule oxford2bed:
         'plink --gen {input.gen} --sample {input.sample} --hard-call-threshold 0.49 \
         --keep-allele-order --make-bed --output-chr 26 --out {params.out}'
 
+## Convert Oxford files to .map/.ped files
 rule oxford2ped:
     input:
         gen = DATAOUT + "/{sample}/{sample}_imputed_ChromFixed",
@@ -143,6 +148,7 @@ rule oxford2ped:
         'plink --gen {input.gen} --sample {input.sample} --hard-call-threshold 0.49 \
         --keep-allele-order --output-chr 26 --recode --out {params.out}'
 
+## Convert Oxford files to .vcf files
 rule oxford2vcf:
     input:
         gen = DATAOUT + "/{sample}/{sample}_imputed_ChromFixed",
@@ -155,27 +161,24 @@ rule oxford2vcf:
         'plink --gen {input.gen} --sample {input.sample} --hard-call-threshold 0.49 \
         --keep-allele-order --output-chr 26 --recode vcf --out {params.out}'
 
-rule html_Report:
+rule plots:
     input:
-        script = 'scripts/MT_imputation_report.Rmd',
+        script = 'scripts/plots.R',
         typ_map = DATAOUT + "/{sample}/{sample}_typedOnly.map",
         typ_ped = DATAOUT + "/{sample}/{sample}_typedOnly.ped",
         imp_map = DATAOUT + "/{sample}/Imputed_{sample}.map",
         imp_ped = DATAOUT + "/{sample}/Imputed_{sample}.ped",
         imp_info = DATAOUT + "/{sample}/{sample}_imputed_info",
     output:
-        DATAOUT + "/{sample}/stats/{sample}_mtImputed_QC.html"
+        InfoPlot = DATAOUT + "/{sample}/stats/{sample}_Info.png",
+        InfoHimcPlot = DATAOUT + "/{sample}/stats/{sample}_InfoHiMC.png",
+        haplgroups = DATAOUT + "/{sample}/stats/{sample}_Haplogroups.txt",
+        HaplogroupPlot = DATAOUT + "/{sample}/stats/{sample}_HaplogroupMatch.png"
     params:
-        rwd = RWD,
         output_dir = DATAOUT + "/{sample}/stats",
+        sample = '{sample}',
         info_cut = INFOCUT,
-        sample = '{sample}'
-
     shell:
-        "R -e 'rmarkdown::render("
-        """"{input.script}", output_file = "{output}", output_dir = "{params.output_dir}", \
-params = list(rwd = "{params.rwd}", info_cut = "{params.info_cut}", sample = "{params.sample}", \
-typ_map = "{input.typ_map}", typ_ped = "{input.typ_ped}", \
-imp_map = "{input.imp_map}", imp_ped = "{input.imp_ped}", \
-imp_info = "{input.imp_info}", out = "{params.output_dir}"))' --slave
-        """
+        'Rscript {input.script} {input.typ_map} {input.typ_ped} \
+        {input.imp_map} {input.imp_ped} {input.imp_info} \
+        {params.output_dir} {params.sample} {params.info_cut}'
