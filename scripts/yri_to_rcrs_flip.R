@@ -1,6 +1,7 @@
-#!/usr/bin/Rscript
+#!/usr/bin/env Rscript
 
-suppressPackageStartupMessages(library(tidyverse))
+suppressPackageStartupMessages(library(readr))
+suppressPackageStartupMessages(library(dplyr))
 
 #-----------------------------------------------------##
 ## 	Converting Yoruba (YRI - AF347015) SNP positions
@@ -18,50 +19,57 @@ suppressPackageStartupMessages(library(tidyverse))
 #	16195		Deleted
 #	16196-16571	Subtract Two
 #-----------------------------------------------------##
-yri_rcrs <- function(x){
-  if(x < 311){
-    x
-  }else{
-    if(x >= 311 & x < 318){
-      x - 1
-    }else {
-      if(x >= 318 & x < 3109){
-        x - 2
-      }else {
-        if(x >= 3109 & x < 16195){
-          x - 1
-        }else {
-          if(x >= 16196 & x < 16571){
-            x - 2
-          }else {
-            x
-          }}}}}
-}
+yri_rcrs <- Vectorize(function(x){
+  if (x < 310) {
+    return(x)
+  } else if (x == 310) {
+    return(NA)
+  } else if (x < 317) {
+    return(x - 1)
+  } else if (x == 317) {
+    return(NA)
+  } else if (x < 3109) {
+    return(x - 2)
+  } else if (x < 16195) {
+    return(x - 1)
+  } else if (x == 16195) {
+    return(NA)
+  } else if (x < 16571) {
+    return(x - 2)
+  } else {
+    return(x)
+  }
+})
 
 ## Funciton to flip nuclotides
-nucleotide_flip <- function(x){dplyr::recode(x, 'A' = 'T', 'T' = 'A', 'G' = 'C', 'C' = 'G')}
+nucleotide_flip <- function(x){
+  dplyr::recode(x, "A" = "T", "T" = "A", "G" = "C", "C" = "G", .default = x)
+}
 
 ## Arg parse
-args = commandArgs(trailingOnly=TRUE)
+args <- commandArgs(trailingOnly=TRUE)
 reference <- args[1]
 bimfile <- args[2]
 outfile <- args[3]
 
 ##  Read in reference
-ref <- read_tsv(reference, col_names = F) %>%
-  rename(CHROM = X1, POS = X2, Ref = X3, Alt = X4, AC = X5, AN = X6, AF = X7)
+ref <- read_tsv(reference, col_types = "cicciid",
+  col_names = c("CHROM", "POS", "Ref", "Alt", "AC", "AN", "AF"))
 
 ## Read in sample bim file
-bim <- read_table2(bimfile, col_names = F) %>%
-  rename(CHROM = X1, SNP = X2, cm = X3, POS = X4, A1 = X5, A2 = X6) %>%
-  filter(CHROM == 26) %>% arrange(POS)
+bim <- read_table2(bimfile, col_types = "iciicc",
+  col_names = c("CHROM", "SNP", "cm", "POS", "A1", "A2")) %>%
+  filter(CHROM == 26) %>%
+  arrange(POS)
 
 ## Convert from YRI to rCRS
-bim$POSrcrs <- sapply(bim$POS, yri_rcrs)
+bim <- bim %>%
+  mutate(POSrcrs = yri_rcrs(POS)) %>%
+  filter(!is.na(POSrcrs))
 
 ## Join bim to referenece SNPs
-pos_join <- left_join(bim, select(ref, -CHROM), by = 'POS')
-rcrs_join <- left_join(bim, select(ref, -CHROM), by = c('POSrcrs' = 'POS'))
+pos_join <- left_join(bim, select(ref, -CHROM), by = "POS")
+rcrs_join <- left_join(bim, select(ref, -CHROM), by = c("POSrcrs" = "POS"))
 
 ## Percentage of SNPs alligning to reference panel:
 #   after YRI to rCRS conversion
@@ -69,43 +77,39 @@ perc.rcrs <- sum(!is.na(rcrs_join$AF)) / nrow(rcrs_join)
 #   prior YRI to rCRS conversion
 perc.pos <- sum(!is.na(pos_join$AF)) / nrow(pos_join)
 
-if(perc.rcrs > perc.pos){
-  cat('\nPercentage of SNPs aligining to reference panel prior to rCRS conversion:', perc.pos,
-      '\nPercentage of SNPs aligining to reference panel after rCRS conversion:', perc.rcrs,
-      '\nSample is likely aligned to YRI - lifting over \n')
-}else{
-  cat('\nPercentage of SNPs aligining to reference panel prior to rCRS conversion:', perc.pos,
-      '\nPercentage of SNPs aligining to reference panel after rCRS conversion:', perc.rcrs,
-      '\nSample is likely aligned to rCRS \n')
-}
-cat('\n')
+check_aln <- Vectorize(function(ret_allele, oth_allele, ref) {
+  if (ret_allele == ref | oth_allele == ref) {
+    return(ret_allele)
+  } else {
+    return(NA)
+  }
+})
 
-if(perc.rcrs > perc.pos){
-  out <- rcrs_join %>%
-    mutate(flip = !(A1 == Ref | A2 == Ref)) %>%
-    mutate(A1_flip = ifelse(A1 == Ref | A2 == Ref, A1, nucleotide_flip(A1))) %>%
-    mutate(A2_flip = ifelse(A1 == Ref | A2 == Ref, A2, nucleotide_flip(A2))) %>%
-    mutate(A1_flip = ifelse(is.na(A1_flip), A1, A1_flip)) %>%
-    mutate(A2_flip = ifelse(is.na(A2_flip), A2, A2_flip))
+flip <- . %>%
+  mutate(flip = !(A1 == Ref | A2 == Ref)) %>%
+  mutate(A1_flip = ifelse(!flip, A1, nucleotide_flip(A1))) %>%
+  mutate(A2_flip = ifelse(!flip, A2, nucleotide_flip(A2))) %>%
+  mutate(A1_flip = check_aln(A1_flip, A2_flip, Ref)) %>%
+  mutate(A2_flip = check_aln(A2_flip, A1_flip, Ref))
 
-  cat('\nflipped strand due to allele mismatch at', sum(out$flip, na.rm = T), 'out of', nrow(out), 'SNPs \n')
-  cat('\n')
-
-  out %>%
-    select(CHROM, SNP, cm, POSrcrs, A1_flip, A2_flip)  %>%
-    write_tsv(outfile, col_names = F)
+strng <- "Percentage of SNPs aligining to reference panel %s to rCRS conversion: %s"
+message(sprintf(strng, "prior", perc.pos))
+message(sprintf(strng, "after", perc.rcrs))
+if (perc.rcrs > perc.pos) {
+  message("Sample is likely aligned to YRI - lifting over and aligning")
+  cat("\n")
+  out <- flip(rcrs_join) %>%
+    select(-POS) %>%
+    rename(POS = POSrcrs)
 } else {
-  out <- pos_join %>%
-    mutate(flip = !(A1 == Ref | A2 == Ref)) %>%
-    mutate(A1_flip = ifelse(A1 == Ref | A2 == Ref, A1, nucleotide_flip(A1))) %>%
-    mutate(A2_flip = ifelse(A1 == Ref | A2 == Ref, A2, nucleotide_flip(A2))) %>%
-    mutate(A1_flip = ifelse(is.na(A1_flip), A1, A1_flip)) %>%
-    mutate(A2_flip = ifelse(is.na(A2_flip), A2, A2_flip))
-
-  cat('\nflipped strand due to allele mismatch at', sum(out$flip, na.rm = T), 'out of', nrow(out), 'SNPs \n')
-  cat('\n')
-
-  out %>%
-    select(CHROM, SNP, cm, POS, A1_flip, A2_flip)  %>%
-    write_tsv(outfile, col_names = F)
+  message("Sample is likely aligned to rCRS - aligning original")
+  cat("\n")
+  out <- flip(pos_join)
 }
+
+strng <- "flipped strand due to allele mismatch at %i out of %i SNPs."
+message(sprintf(strng, sum(out$flip, na.rm = T), nrow(out)))
+
+out %>%
+  select(CHROM, SNP, cm, POS, A1_flip, A2_flip)  %>%
+  write_tsv(outfile, col_names = F)
