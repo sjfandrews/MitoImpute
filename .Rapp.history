@@ -1,0 +1,391 @@
+exp(2.168)
+exp(4)
+library(tidyverse)#
+library(Hmisc)#
+library(TwoSampleMR)#
+library(gridExtra)#
+library(qvalue)#
+#
+## Burgess, Stephen, Simon G. Thompson, and CRP CHD Genetics Collaboration. 2011. International Journal of Epidemiology 40 (3): 755–64.#
+f_stat = function(N, K, R){#
+  f = ((N-K-1) / K) * (R/(1-R))}#
+#
+## Proportion of phenotypic variance explained by SNP #
+## https://doi.org/10.1371/journal.pone.0120758.s001#
+snp.pve <- function(eaf, beta, se, n){#
+  (2*eaf*(1 - eaf)*beta^2) / (2 * beta * eaf * (1-eaf) + se^2 * 2 * n * eaf * (1-eaf))#
+}#
+#
+## if value is less then 0.001, use scientific notation#
+round_sci <- function(x){ifelse(x < 0.001, formatC(x, format = "e", digits = 2), round(x, 3))}#
+#
+## replace pvalues with stars#
+signif.num <- function(x) {#
+  symnum(x, corr = FALSE, na = FALSE, legend = FALSE,#
+         cutpoints = c(0, 0.001, 0.01, 0.05, 0.1, 1), #
+         symbols = c("***", "**", "*", ".", " "))#
+}#
+#
+## Function for spreading multiple columns #
+# https://community.rstudio.com/t/spread-with-multiple-value-columns/5378 #
+myspread <- function(df, key, value) {#
+  # quote key#
+  keyq <- rlang::enquo(key)#
+  # break value vector into quotes#
+  valueq <- rlang::enquo(value)#
+  s <- rlang::quos(!!valueq)#
+  df %>% gather(variable, value, !!!s) %>%#
+    unite(temp, !!keyq, variable) %>%#
+    spread(temp, value)#
+}#
+#
+## From Greenbrown package#
+AllEqual <- structure(function(x) {#
+  res <- FALSE#
+  x <- na.omit(as.vector(x))#
+  if (length(unique(x)) == 1 | length(x) == 0) res <- TRUE#
+  return(res)#
+},ex=function(){#
+  AllEqual(1:10)#
+  AllEqual(rep(0, 10))#
+  AllEqual(letters)#
+  AllEqual(rep(NA, 10))#
+})#
+#
+passfunc <- function(ivw.p, ivw.b, mre.p, mre.b, wme.p, wme.b, wmb.p, wmb.b){#
+  ifelse(AllEqual(c(#
+    ifelse(ivw.p < 0.05, sign(ivw.b), NA), #
+    ifelse(mre.p < 0.05, sign(mre.b), NA),#
+    ifelse(wme.p < 0.05, sign(wme.b), NA),#
+    ifelse(wmb.p < 0.05, sign(wmb.b), NA)#
+  )) == TRUE, #
+  TRUE, FALSE)#
+}
+dir = "/Users/sheaandrews/Dropbox/Research/PostDoc-MSSM/2_MR/4_Output/strict_clump/0_Summary"
+## Outcomes to include the results #
+outcomes = c('load', 'loadKunkle', 'aaos', 'ab42', 'ptau', 'tau', 'npany', 'nft4', 'vbiany', 'hipv', 'hipv2015')#
+## Exposures to include in the results#
+exposures = c("alccliu", "alcd", "audit", "bmi", "dbp", "dep", "diab", "educ", "hdl", "hear", "insom", "ldl", "mdd", "mvpa", "oilfish", "pp", "sbp", "sleepDashti", "smkcpd", "smki", "sociso", "tc", "trig")#
+#
+## Sample Sizes#
+samplesize <- tibble(trait = c('alccliu', 'smki', 'smkcpd', 'audit', 'alcd', 'oilfish', 'hear', 'diab', 'bmi', 'tc', 'ldl', 'hdl', 'trig', 'dbp', 'sbp', 'pp', 'dep', 'mdd', 'insom', 'sleepDashti', 'sociso', 'educ', 'aaos', 'ab42', 'hipv', 'hipv2015', 'load', 'loadKunkle', 'nft4', 'npany', 'ptau', 'tau', 'vbiany', 'mvpa'),#
+                     categorical = c(FALSE, FALSE, FALSE, FALSE, TRUE, FALSE, TRUE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, TRUE, TRUE, FALSE, FALSE, FALSE, TRUE, FALSE, FALSE, FALSE, TRUE, TRUE, FALSE, TRUE, FALSE, FALSE, TRUE, FALSE),#
+                     samplesize = c(537349, 262990, 263954, 121600, 46568, 359340, 346635, 659316, 690495, 188577, 188577, 188577, 188577, 757601, 757601, 757601, 322580, 480359, 386533, 446118, 452302, 766345, 40255, 3146, 13688, 26814, 54162, 63926, 4914, 4914, 3146, 3146, 4914, 377234), #
+                     ncase = c(NA, NA, NA, NA, 11569, NA, 255838, 62892, NA, NA, NA, NA, NA, NA, NA, NA,  113769, 135458, 109402, NA, NA, NA, 14406, NA, NA, NA, 17008, 21982, NA, 3426, NA, NA, 992, NA), #
+                     ncontrol = c(NA, NA, NA, NA, 34999, NA, 90797, 596424, NA, NA, NA, NA, NA, NA, NA, NA,  208811, 344901, 277131, NA, NA, NA, 25849, NA, NA, NA, 37154, 41944, NA, 620, NA, NA, 1772, NA)) #
+#
+## Files#
+MR_results <- read_tsv(file.path(dir, 'MR_results.txt.gz')) %>% #
+  filter(outcome %in% outcomes) %>% #
+  filter(exposure %in% exposures) #
+#
+mrpresso_global_comb <- read_tsv(file.path(dir, 'mrpresso_global_comb.txt.gz')) %>% #
+  filter(outcome %in% outcomes) %>% #
+  filter(exposure %in% exposures) #
+#
+MRdat <- read_tsv(file.path(dir, 'MR_mrpresso_MRdat.txt.gz'), guess_max = 100000) %>% #
+  filter(outcome %in% outcomes) %>% #
+  filter(exposure %in% exposures) %>% #
+  select(-samplesize.outcome) %>% #
+  left_join(samplesize, by = c('exposure' = 'trait')) %>% #
+  rename(samplesize.exposure = samplesize, ncase.exposure = ncase, ncontrol.exposure = ncontrol, catagorical.exposure = categorical) %>% #
+  left_join(samplesize, by = c('outcome' = 'trait')) %>% #
+  rename(samplesize.outcome = samplesize, ncase.outcome = ncase, ncontrol.outcome = ncontrol, categorical.outcome = categorical)#
+#
+egger_comb <- read_tsv(file.path(dir, 'egger_comb.txt.gz')) %>% #
+  filter(outcome %in% outcomes) %>% #
+  filter(exposure %in% exposures)
+MRdat <- read_tsv(file.path(dir, 'MR_mrpresso_MRdat.txt.gz'), guess_max = 100000) %>%
+filter(outcome %in% outcomes) %>% #
+  filter(exposure %in% exposures) %>% #
+  filter(!(outcome == 'loadKunkle' & exposure %in% c("alccliu", "alcd", "audit",  "educ"))) %>%#
+  filter(!(outcome == 'load' & exposure %nin% c("alccliu", "alcd", "audit",  "educ"))) %>% #
+  filter(!(outcome == 'hipv' & exposure %in% c("alccliu", "alcd", "audit",  "educ"))) %>%#
+  filter(!(outcome == 'hipv2015' & exposure %nin% c("alccliu", "alcd", "audit",  "educ"))) %>% #
+  ## Merge Lambert 2013 + Kunkle 2019; Hilbar 2015 + Hilbar 2017#
+  mutate(outcome = str_replace(outcome, 'loadKunkle', 'load')) %>% #
+  mutate(outcome = str_replace(outcome, 'hipv2015', 'hipv')) %>% #
+  mutate(outcome.name = fct_relevel(outcome, 'load', 'aaos', 'ab42', 'ptau', 'tau', 'npany', 'nft4', 'vbiany', 'hipv')) %>% #
+  mutate(exposure.name = fct_relevel(exposure, 'alccliu', 'alcd', 'audit', 'smki', 'smkcpd', 'dbp', 'sbp', 'pp', "hdl", "ldl", "tc", "trig", 'educ', 'bmi', 'diab', "oilfish", "hear", "insom", "sleepDashti", "mvpa", "dep", 'mdd', "sociso")) %>% #
+  mutate(exposure.name = fct_recode(exposure, #
+                               "Alcohol Consumption" = "alccliu", #
+                               "Alcohol Dependence" = "alcd", #
+                               "AUDIT" = "audit", #
+                               "Smoking Initiation" = "smki", #
+                               "Cigarettes per Day" = "smkcpd", #
+                               "Diastolic Blood Pressure" = "dbp", #
+                               "Depressive Symptoms" = "dep", #
+                               'BMI' = "bmi", #
+                               "Type 2 Diabetes" = "diab", #
+                               "Educational Attainment" = "educ", #
+                               "Oily Fish Intake" = "oilfish",#
+                               "High-density lipoproteins" = "hdl", #
+                               "Hearing Problems" = "hear", #
+                               "Insomnia Symptoms" = "insom", #
+                               "Low-density lipoproteins" = "ldl", #
+                               "Major Depressive Disorder" = "mdd", #
+                               "Moderate-to-vigorous PA" = "mvpa",#
+                               "Pulse Pressure" = "pp", #
+                               "Systolic Blood Pressure" = "sbp", #
+                               "Social Isolation" = "sociso", #
+                               "Sleep Duration" = "sleepDashti",#
+                               "Total Cholesterol" = "tc", #
+                               "Triglycerides" = "trig")) %>% #
+  mutate(outcome.name = fct_recode(outcome, #
+                              "LOAD" = "load", #
+                              "AAOS" = "aaos", #
+                              "CSF Ab42" = "ab42", #
+                              "CSF Tau" = "tau", #
+                              "CSF Ptau" = "ptau", #
+                              "Hippocampul Volume" = "hipv",#
+                              "Neuritic Plaques" = "npany",#
+                              "Neurofibrillary Tangles" = "nft4",#
+                              "Vascular Brain Injury" = "vbiany")) %>% #
+  select(-samplesize.outcome) %>% #
+  left_join(samplesize, by = c('exposure' = 'trait')) %>% #
+  rename(samplesize.exposure = samplesize, ncase.exposure = ncase, ncontrol.exposure = ncontrol, catagorical.exposure = categorical) %>% #
+  left_join(samplesize, by = c('outcome' = 'trait')) %>% #
+  rename(samplesize.outcome = samplesize, ncase.outcome = ncase, ncontrol.outcome = ncontrol, categorical.outcome = categorical)
+MRdat
+MRsummary <- MR_results  %>%
+mutate(method = str_replace(method, "Inverse variance weighted \\(fixed effects\\)", 'IVW')) %>%#
+  mutate(method = str_replace(method, "MR Egger", 'MR_Egger')) %>%#
+  mutate(method = str_replace(method, "Weighted median", 'Weighted_median')) %>%#
+  mutate(method = str_replace(method, "Weighted mode", 'Weighted_mode')) %>%#
+  rename(MR.pval = pval) %>%#
+  left_join(select(mrpresso_global_comb, outcome, exposure, pt, n_outliers, RSSobs, pval, outliers_removed), #
+            by = c('outcome', 'exposure', 'pt', 'MR_PRESSO' = 'outliers_removed')) %>% #
+  rename(MRPRESSO.pval = pval) %>% #
+  left_join(select(egger_comb, outcome, exposure, pt, egger_intercept, egger_se, pval, outliers_removed), #
+            by = c('outcome', 'exposure', 'pt', 'MR_PRESSO' = 'outliers_removed')) %>% #
+  rename(Egger.pval = pval) %>% #
+  select(outcome, exposure, pt, method, MR_PRESSO, nsnp, n_outliers, b, se, MR.pval, #
+         RSSobs, MRPRESSO.pval, egger_intercept, egger_se, Egger.pval) %>% #
+  arrange(outcome, exposure, pt, method, MR_PRESSO) %>% #
+  ## Remove associations between Kunkle 2019 (LOAD) and alcohol consumption, education (as per CHARGE usage)#
+  ## Instead use the assocations with Lambert 2013#
+  filter(!(outcome == 'loadKunkle' & exposure %in% c("alccliu", "alcd", "audit",  "educ"))) %>%#
+  filter(!(outcome == 'load' & exposure %nin% c("alccliu", "alcd", "audit",  "educ"))) %>% #
+  ## Remove associations between Hilbar 2017 (Hippocampual volume) and alcohol consumption, education (as per CHARGE usage)#
+  ## Instead use the assocations with Hilbar 2015#
+  filter(!(outcome == 'hipv' & exposure %in% c("alccliu", "alcd", "audit",  "educ"))) %>%#
+  filter(!(outcome == 'hipv2015' & exposure %nin% c("alccliu", "alcd", "audit",  "educ")))
+MRsummary
+MRsummary %>% distinct(outcome, exposure, pt)
+MRsummary %>% distinct(outcome, exposure, pt, MR_PRESSO)
+MRdat
+MRdat <- read_tsv(file.path(dir, 'MR_mrpresso_MRdat.txt.gz'), guess_max = 100000) %>% #
+  filter(outcome %in% outcomes) %>% #
+  filter(exposure %in% exposures) %>% #
+  select(-samplesize.outcome) %>% #
+  left_join(samplesize, by = c('exposure' = 'trait')) %>% #
+  rename(samplesize.exposure = samplesize, ncase.exposure = ncase, ncontrol.exposure = ncontrol, catagorical.exposure = categorical) %>% #
+  left_join(samplesize, by = c('outcome' = 'trait')) %>% #
+  rename(samplesize.outcome = samplesize, ncase.outcome = ncase, ncontrol.outcome = ncontrol, categorical.outcome = categorical)
+MRdat
+dat <- read_tsv('/Users/sheaandrews/Dropbox/Research/Data/Summary_Statisitics/AD_Neuropath/VBI_any.Meta.annotate1.2013May03.txt.gz')
+dat
+dat <- read_table2('/Users/sheaandrews/Dropbox/Research/Data/Summary_Statisitics/AD_Neuropath/VBI_any.Meta.annotate1.2013May03.txt.gz')
+dat
+select(dat, MarkerName, chr, pos, Effect_allele, Reference_allele, allele1, allele2, Effect, StdErr)
+dat <- read_table2('/Users/sheaandrews/Dropbox/Research/Data/Summary_Statisitics/AD_Neuropath/VBI_any.Meta.annotate1.2013May03.txt.gz', col_types = list(Locational_ID = col_character()))
+dat
+read_table2('/Users/sheaandrews/Dropbox/Research/Data/Summary_Statisitics/AD_Neuropath/VBI_any.Meta.annotate1.2013May03.txt.gz', col_types = list(Locational_ID = col_character())) %>%#
+  select(-Effect_allele, -Reference_allele, -MarkerName_1, -Locational_ID) %>%#
+  mutate(Effect_allele = toupper(allele1), Non_Effect_allele = toupper(allele2)) %>%#
+  filter(nchar(allele1) == 1) %>% #
+  filter(allele1 %in% c('A', 'C', 'G', 'T')) %>% #
+  filter(nchar(allele2) == 1) %>% #
+  filter(allele2 %in% c('A', 'C', 'G', 'T'))
+test <- read_table2('/Users/sheaandrews/Dropbox/Research/Data/Summary_Statisitics/AD_Neuropath/VBI_any.Meta.annotate1.2013May03.txt.gz', col_types = list(Locational_ID = col_character())) %>%#
+  select(-Effect_allele, -Reference_allele, -MarkerName_1, -Locational_ID) %>%#
+  mutate(Effect_allele = toupper(allele1), Non_Effect_allele = toupper(allele2)) %>%#
+  filter(nchar(allele1) == 1) %>% #
+  filter(allele1 %in% c('A', 'C', 'G', 'T')) %>% #
+  filter(nchar(allele2) == 1) %>% #
+  filter(allele2 %in% c('A', 'C', 'G', 'T'))
+test
+test <- read_table2('/Users/sheaandrews/Dropbox/Research/Data/Summary_Statisitics/AD_Neuropath/VBI_any.Meta.annotate1.2013May03.txt.gz', col_types = list(Locational_ID = col_character())) %>%#
+  select(-Effect_allele, -Reference_allele, -MarkerName_1, -Locational_ID) %>%#
+  mutate(Effect_allele = toupper(allele1), Non_Effect_allele = toupper(allele2))
+test
+test <- read_table2('/Users/sheaandrews/Dropbox/Research/Data/Summary_Statisitics/AD_Neuropath/VBI_any.Meta.annotate1.2013May03.txt.gz', col_types = list(Locational_ID = col_character())) %>%#
+  select(-Effect_allele, -Reference_allele, -MarkerName_1, -Locational_ID) %>%#
+  mutate(allele1 = toupper(allele1), allele1 = toupper(allele2)) %>%#
+  filter(nchar(allele1) == 1) %>% #
+  filter(allele1 %in% c('A', 'C', 'G', 'T')) %>% #
+  filter(nchar(allele2) == 1) %>% #
+  filter(allele2 %in% c('A', 'C', 'G', 'T'))
+test
+test <- read_table2('/Users/sheaandrews/Dropbox/Research/Data/Summary_Statisitics/AD_Neuropath/VBI_any.Meta.annotate1.2013May03.txt.gz', col_types = list(Locational_ID = col_character())) %>%#
+  select(-Effect_allele, -Reference_allele, -MarkerName_1, -Locational_ID) %>%#
+  mutate(allele1 = toupper(allele1), allele1 = toupper(allele2)) %>%#
+  filter(nchar(allele1) == 1)
+test
+dat %>%   #
+  select(-Effect_allele, -Reference_allele, -MarkerName_1, -Locational_ID) %>%#
+  mutate(allele1 = toupper(allele1), allele1 = toupper(allele2)) %>%#
+  filter(nchar(allele1) == 1)
+dat %>%   #
+  select(-Effect_allele, -Reference_allele, -MarkerName_1, -Locational_ID) %>%#
+  mutate(allele1 = toupper(allele1), allele1 = toupper(allele2)) %>%#
+  filter(nchar(allele1) == 1) %>% #
+  filter(allele1 %in% c('A', 'C', 'G', 'T'))
+dat %>%   #
+  select(-Effect_allele, -Reference_allele, -MarkerName_1, -Locational_ID) %>%#
+  mutate(allele1 = toupper(allele1), allele1 = toupper(allele2)) %>%#
+  filter(nchar(allele1) == 1) %>% #
+  filter(allele1 %in% c('A', 'C', 'G', 'T')) %>% #
+  filter(nchar(allele2) == 1)
+dat %>%   #
+  select(-Effect_allele, -Reference_allele, -MarkerName_1, -Locational_ID) %>%#
+  mutate(allele1 = toupper(allele1), allele1 = toupper(allele2)) %>%#
+  filter(nchar(allele1) == 1) %>% #
+  filter(allele1 %in% c('A', 'C', 'G', 'T')) %>% #
+  filter(nchar(allele2) == 1) %>% #
+  filter(allele2 %in% c('A', 'C', 'G', 'T'))
+dat %>%   #
+  select(-Effect_allele, -Reference_allele, -MarkerName_1, -Locational_ID) %>%#
+  mutate(allele1 = toupper(allele1), allele2 = toupper(allele2)) %>%#
+  filter(nchar(allele1) == 1) %>% #
+  filter(allele1 %in% c('A', 'C', 'G', 'T')) %>% #
+  filter(nchar(allele2) == 1) %>% #
+  filter(allele2 %in% c('A', 'C', 'G', 'T'))
+test <- read_table2('/Users/sheaandrews/Dropbox/Research/Data/Summary_Statisitics/AD_Neuropath/VBI_any.Meta.annotate1.2013May03.txt.gz', col_types = list(Locational_ID = col_character())) %>%#
+  select(-Effect_allele, -Reference_allele, -MarkerName_1, -Locational_ID) %>%#
+  mutate(allele1 = toupper(allele1), allele2 = toupper(allele2)) %>%#
+  filter(nchar(allele1) == 1) %>% #
+  filter(allele1 %in% c('A', 'C', 'G', 'T')) %>% #
+  filter(nchar(allele2) == 1) %>% #
+  filter(allele2 %in% c('A', 'C', 'G', 'T'))
+test
+reference <- 'ReferencePanel/ReferenceSNPs.txt'#
+bimfile <- 'example/imputed/ExampleSamplePanel/chrMT_ExampleSamplePanel.bim' #
+outfile <- 'example/imputed/ExampleSamplePanel/chrMT_ExampleSamplePanel_rcrsFlipped.bim'
+yri_rcrs <- Vectorize(function(x){#
+  if (x < 310) {#
+    return(x)#
+  } else if (x == 310) {#
+    return(NA)#
+  } else if (x < 317) {#
+    return(x - 1)#
+  } else if (x == 317) {#
+    return(NA)#
+  } else if (x < 3109) {#
+    return(x - 2)#
+  } else if (x < 16195) {#
+    return(x - 1)#
+  } else if (x == 16195) {#
+    return(NA)#
+  } else if (x < 16571) {#
+    return(x - 2)#
+  } else {#
+    return(x)#
+  }#
+})#
+#
+## Funciton to flip nuclotides#
+nucleotide_flip <- function(x){#
+  dplyr::recode(x, "A" = "T", "T" = "A", "G" = "C", "C" = "G", .default = x)#
+}
+##  Read in reference#
+ref <- read_tsv(reference, col_types = "cicciid",#
+  col_names = c("CHROM", "POS", "Ref", "Alt", "AC", "AN", "AF"))
+setwd('/Users/sheaandrews/Dropbox/src/MitoImpute')
+##  Read in reference#
+ref <- read_tsv(reference, col_types = "cicciid",#
+  col_names = c("CHROM", "POS", "Ref", "Alt", "AC", "AN", "AF"))
+## Read in sample bim file#
+bim <- read_table2(bimfile, col_types = "iciicc",#
+  col_names = c("CHROM", "SNP", "cm", "POS", "A1", "A2")) %>%#
+  filter(CHROM == 26) %>%#
+  arrange(POS)
+## Convert from YRI to rCRS#
+bim <- bim %>%#
+  mutate(POSrcrs = yri_rcrs(POS)) %>%#
+  filter(!is.na(POSrcrs))
+## Join bim to referenece SNPs#
+pos_join <- left_join(bim, select(ref, -CHROM), by = "POS")#
+rcrs_join <- left_join(bim, select(ref, -CHROM), by = c("POSrcrs" = "POS"))
+## Percentage of SNPs alligning to reference panel:#
+#   after YRI to rCRS conversion#
+perc.rcrs <- sum(!is.na(rcrs_join$AF)) / nrow(rcrs_join)#
+#   prior YRI to rCRS conversion#
+perc.pos <- sum(!is.na(pos_join$AF)) / nrow(pos_join)
+## Percentage of SNPs alligning to reference panel:#
+#   after YRI to rCRS conversion#
+perc.rcrs <- sum(!is.na(rcrs_join$AF)) / nrow(rcrs_join)#
+#   prior YRI to rCRS conversion#
+perc.pos <- sum(!is.na(pos_join$AF)) / nrow(pos_join)
+check_aln <- Vectorize(function(ret_allele, oth_allele, ref) {#
+  if (ret_allele == ref | oth_allele == ref) {#
+    return(ret_allele)#
+  } else {#
+    return(NA)#
+  }#
+})
+flip <- . %>%#
+  mutate(flip = !(A1 == Ref | A2 == Ref)) %>%#
+  mutate(A1_flip = ifelse(!flip, A1, nucleotide_flip(A1))) %>%#
+  mutate(A2_flip = ifelse(!flip, A2, nucleotide_flip(A2))) %>%#
+  mutate(A1_flip = check_aln(A1_flip, A2_flip, Ref)) %>%#
+  mutate(A2_flip = check_aln(A2_flip, A1_flip, Ref))
+strng <- "Percentage of SNPs aligining to reference panel %s to rCRS conversion: %s"#
+message(sprintf(strng, "prior", perc.pos))#
+message(sprintf(strng, "after", perc.rcrs))#
+if (perc.rcrs > perc.pos) {#
+  message("Sample is likely aligned to YRI - lifting over and aligning")#
+  cat("\n")#
+  out <- flip(rcrs_join) %>%#
+    select(-POS) %>%#
+    rename(POS = POSrcrs)#
+} else {#
+  message("Sample is likely aligned to rCRS - aligning original")#
+  cat("\n")#
+  out <- flip(pos_join)#
+}
+pos_join
+pos_join %>%#
+  mutate(flip = !(A1 == Ref | A2 == Ref))
+pos_join %>%#
+  mutate(flip = !(A1 == Ref | A2 == Ref)) %>%#
+  mutate(A1_flip = ifelse(!flip, A1, nucleotide_flip(A1)))
+pos_join %>%#
+  mutate(flip = !(A1 == Ref | A2 == Ref)) %>%#
+  mutate(A1_flip = ifelse(!flip, A1, nucleotide_flip(A1))) %>%#
+  mutate(A2_flip = ifelse(!flip, A2, nucleotide_flip(A2)))
+pos_join %>%#
+  mutate(flip = !(A1 == Ref | A2 == Ref)) %>%#
+  mutate(A1_flip = ifelse(!flip, A1, nucleotide_flip(A1))) %>%#
+  mutate(A2_flip = ifelse(!flip, A2, nucleotide_flip(A2))) %>%#
+  mutate(A1_flip = check_aln(A1_flip, A2_flip, Ref))
+flip <- pos_join %>%#
+	filter(!is.na(AF))
+pos_join %>%#
+	filter(!is.na(AF))
+pos_join %>%#
+	filter(!is.na(AF)) %>%#
+  mutate(flip = !(A1 == Ref | A2 == Ref))
+pos_join %>%#
+	filter(!is.na(AF)) %>%#
+  mutate(flip = !(A1 == Ref | A2 == Ref)) %>%#
+  mutate(A1_flip = ifelse(!flip, A1, nucleotide_flip(A1)))
+pos_join %>%#
+	filter(!is.na(AF)) %>%#
+  mutate(flip = !(A1 == Ref | A2 == Ref)) %>%#
+  mutate(A1_flip = ifelse(!flip, A1, nucleotide_flip(A1))) %>%#
+  mutate(A2_flip = ifelse(!flip, A2, nucleotide_flip(A2)))
+pos_join %>%#
+	filter(!is.na(AF)) %>%#
+  mutate(flip = !(A1 == Ref | A2 == Ref)) %>%#
+  mutate(A1_flip = ifelse(!flip, A1, nucleotide_flip(A1))) %>%#
+  mutate(A2_flip = ifelse(!flip, A2, nucleotide_flip(A2))) %>%#
+  mutate(A1_flip = check_aln(A1_flip, A2_flip, Ref))
+pos_join %>%#
+	filter(!is.na(AF)) %>%#
+  mutate(flip = !(A1 == Ref | A2 == Ref)) %>%#
+  mutate(A1_flip = ifelse(!flip, A1, nucleotide_flip(A1))) %>%#
+  mutate(A2_flip = ifelse(!flip, A2, nucleotide_flip(A2))) %>%#
+  mutate(A1_flip = check_aln(A1_flip, A2_flip, Ref)) %>%#
+  mutate(A2_flip = check_aln(A2_flip, A1_flip, Ref))
+pos_join

@@ -1,5 +1,5 @@
 # snakemake -s example/ExampleData.smk
-# snakemake -s example/ExampleData.smk --dag | dot -Tsvg > dag_Example.svg
+# snakemake -s example/ExampleData.smk --dag | dot -Tsvg > example/dag_Example.svg
 
 ##===========================##
 ##  Example Reference Panel
@@ -28,16 +28,16 @@ rule all:
 rule RefSampleSex:
     input: "example/ExampleReferenceSamples.txt"
     output: "example/ReferencePanel/RefSampleList_sex.txt"
-    shell: '''awk '{{$5 = "1"; print}}' {input} > {output}'''
+    shell: '''awk '{{$5 = "M"; print}}' {input} > {output}'''
 
 rule ExampleReferenceSamples:
     input:
-        inVCF = "DerivedData/ReferencePanel/ReferencePanel_highQual_filtered.vcf.gz",
+        inVCF = "ReferencePanel/ReferencePanel.vcf.gz",
         inSamples = "example/ExampleReferenceSamples.txt"
     output:
         "example/ReferencePanel/ReferencePanel.vcf.gz"
     run:
-        shell('bcftools view -S {input.inSamples} -Oz -o {output} {input.inVCF}')
+        shell('bcftools view -S {input.inSamples} --force-samples -Oz -o {output} {input.inVCF}')
         shell('bcftools index {output}')
 
 
@@ -113,7 +113,8 @@ rule NormaliseVcf:
     shell:
         '''
 vt decompose {input.vcf} | bcftools norm -f {input.fasta} | bcftools view -v snps | \
-   bcftools norm -d all | bcftools +fill-tags -o {output} -Oz
+   bcftools norm -d all | bcftools +fill-tags -o {output} -Oz;
+   vt index {output}
 '''
 
 rule StrandFiles:

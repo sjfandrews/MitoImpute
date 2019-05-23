@@ -1,0 +1,29 @@
+PLINK v1.90b5.2 64-bit (9 Jan 2018)
+Options in effect:
+  --double-id
+  --out example/SamplePanel/ExampleSamplePanel
+  --recode
+  --vcf example/SamplePanel/ExampleSamplePanel.vcf.gz
+
+Hostname: sheas-imac.19e98.mountsinai.org
+Working directory: /Users/sheaandrews/Dropbox/src/MitoImpute
+Start time: Wed May 22 16:22:39 2019
+
+Random number seed: 1558556559
+32768 MB RAM detected; reserving 16384 MB for main workspace.
+--vcf: example/SamplePanel/ExampleSamplePanel-temporary.bed +
+example/SamplePanel/ExampleSamplePanel-temporary.bim +
+example/SamplePanel/ExampleSamplePanel-temporary.fam written.
+121 variants loaded from .bim file.
+503 people (0 males, 0 females, 503 ambiguous) loaded from .fam.
+Ambiguous sex IDs written to example/SamplePanel/ExampleSamplePanel.nosex .
+Using 1 thread (no multithreaded calculations invoked).
+Before main variant filters, 503 founders and 0 nonfounders present.
+Calculating allele frequencies... done.
+Total genotyping rate is 0.999474.
+121 variants and 503 people pass filters and QC.
+Note: No phenotypes present.
+--recode ped to example/SamplePanel/ExampleSamplePanel.ped +
+example/SamplePanel/ExampleSamplePanel.map ... done.
+
+End time: Wed May 22 16:22:39 2019

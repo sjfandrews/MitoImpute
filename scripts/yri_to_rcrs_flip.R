@@ -78,7 +78,10 @@ perc.rcrs <- sum(!is.na(rcrs_join$AF)) / nrow(rcrs_join)
 perc.pos <- sum(!is.na(pos_join$AF)) / nrow(pos_join)
 
 check_aln <- Vectorize(function(ret_allele, oth_allele, ref) {
-  if (ret_allele == ref | oth_allele == ref) {
+  if (is.na(ref)) {
+  	return(NA)
+  }
+  else if (ret_allele == ref | oth_allele == ref) {
     return(ret_allele)
   } else {
     return(NA)
@@ -89,8 +92,10 @@ flip <- . %>%
   mutate(flip = !(A1 == Ref | A2 == Ref)) %>%
   mutate(A1_flip = ifelse(!flip, A1, nucleotide_flip(A1))) %>%
   mutate(A2_flip = ifelse(!flip, A2, nucleotide_flip(A2))) %>%
-  mutate(A1_flip = check_aln(A1_flip, A2_flip, Ref)) %>%
-  mutate(A2_flip = check_aln(A2_flip, A1_flip, Ref))
+  mutate(A1_flip = ifelse(is.na(A1_flip), A1, A1_flip)) %>%
+  mutate(A2_flip = ifelse(is.na(A2_flip), A2, A2_flip)) # %>%
+  mutate(chk_a1 = check_aln(A1_flip, A2_flip, Ref)) %>%
+  mutate(chk_a2 = check_aln(A2_flip, A1_flip, Ref))
 
 strng <- "Percentage of SNPs aligining to reference panel %s to rCRS conversion: %s"
 message(sprintf(strng, "prior", perc.pos))
@@ -106,6 +111,12 @@ if (perc.rcrs > perc.pos) {
   cat("\n")
   out <- flip(pos_join)
 }
+
+out %>% filter(!is.na(Ref)) %>%
+	summarise(nmiss_a1 = sum(is.na(chk_a1)),
+            nmiss_a2 = sum(is.na(chk_a2))) %>%
+	mutate(perc_a1 = nmiss_a1 / nrow(filter(out, !is.na(Ref))),
+         perc_a2 = nmiss_a2 / nrow(filter(out, !is.na(Ref))))
 
 strng <- "flipped strand due to allele mismatch at %i out of %i SNPs."
 message(sprintf(strng, sum(out$flip, na.rm = T), nrow(out)))
