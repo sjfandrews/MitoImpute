@@ -1,5 +1,6 @@
 .DS_Store
 .Rhistory
+.Rapp.history
 .snakemake/*
 DerivedData/SamplePanel/*
 example/imputed/*
