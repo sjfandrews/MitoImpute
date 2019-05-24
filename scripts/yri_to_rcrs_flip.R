@@ -79,7 +79,7 @@ perc.pos <- sum(!is.na(pos_join$AF)) / nrow(pos_join)
 
 check_aln <- Vectorize(function(ret_allele, oth_allele, ref) {
   if (is.na(ref)) {
-  	return(NA)
+  	return(stringr::str_to_lower(ret_allele))
   }
   else if (ret_allele == ref | oth_allele == ref) {
     return(ret_allele)
@@ -89,11 +89,9 @@ check_aln <- Vectorize(function(ret_allele, oth_allele, ref) {
 })
 
 flip <- . %>%
-  mutate(flip = !(A1 == Ref | A2 == Ref)) %>%
-  mutate(A1_flip = ifelse(!flip, A1, nucleotide_flip(A1))) %>%
-  mutate(A2_flip = ifelse(!flip, A2, nucleotide_flip(A2))) %>%
-  mutate(A1_flip = ifelse(is.na(A1_flip), A1, A1_flip)) %>%
-  mutate(A2_flip = ifelse(is.na(A2_flip), A2, A2_flip)) # %>%
+  mutate(noflip = !is.na(Ref) & (A1 == Ref | A2 == Ref)) %>%
+  mutate(A1_flip = ifelse(noflip, A1, nucleotide_flip(A1))) %>%
+  mutate(A2_flip = ifelse(noflip, A2, nucleotide_flip(A2))) %>%
   mutate(chk_a1 = check_aln(A1_flip, A2_flip, Ref)) %>%
   mutate(chk_a2 = check_aln(A2_flip, A1_flip, Ref))
 
