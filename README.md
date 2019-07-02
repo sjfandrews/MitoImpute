@@ -81,5 +81,25 @@ setting REFDATA in the ```mtImpute_config.yaml``` file to ```ReferencePanel``` w
 
 Further details on the pipeline for constructing the reference panel can be found in the [MitoImputePrep](https://github.com/sjfandrews/MitoImputePrep) repo.
 
+#### Parallelization
+Snakemake handles parallelization of jobs using [wildcards](https://snakemake.readthedocs.io/en/stable/snakefiles/rules.html#wildcards). Defining a list of sample names in the config.yaml file and specifing the [number of avaliable cores](https://snakemake.readthedocs.io/en/stable/executable.html#useful-command-line-arguments) in the command line will result in snakemake submitting jobs in parallel.
+
+config file with multiple samples
+```
+SAMPLE: ['ExampleSamplePanel', 'ExampleSamplePanel_2', 'ExampleSamplePanel_3']
+DATAIN: 'example/SamplePanel'
+DATAOUT: "example/imputed"
+REFDATA: "example/ReferencePanel"
+INFOCUT: 0
+ITER: 2
+BURNIN: 1
+KHAP: 1000
+```
+
+the corresponding comand line argument
+```
+snakemake -s mtImpute.smk --configfile mtImpute_config.yaml -j
+```
+
 #### Cluster Execution
 For excuting this pipline on a cluster computing environment, refer to [SnakeMake's readme](https://snakemake.readthedocs.io/en/stable/executable.html#cluster-execution).
