@@ -1,0 +1,177 @@
+
+======================
+ IMPUTE version 2.3.2 
+======================
+
+Copyright 2008 Bryan Howie, Peter Donnelly, and Jonathan Marchini
+Please see the LICENCE file included with this program for conditions of use.
+
+The seed for the random number generator is 1316300470.
+
+Command-line input: impute2 -chrX -m resources/example/ReferencePanel/MtMap.txt -h resources/example/ReferencePanel/ReferencePanel.hap.gz -l resources/example/ReferencePanel/ReferencePanel.legend.gz -g results/example/ExampleSamplePanel/ExampleSamplePanel.gen -sample_g results/example/ExampleSamplePanel/ExampleSamplePanel.sample -int 1 16569 -Ne 20000 -o results/example/ExampleSamplePanel/ExampleSamplePanel_imputed -iter 2 -burnin 1 -k_hap 1000
+
+---------------------------------
+ Nomenclature and data structure 
+---------------------------------
+
+     Panel 0: phased reference haplotypes
+     Panel 2: unphased study genotypes
+
+For optimal results, each successive panel (0,1,2) should contain a subset of the SNPs in the previous panel. When the data structure deviates from this ideal configuration, IMPUTE2 tries to use as much of the available information as possible; see documentation for details.
+
+-------------
+ Input files 
+-------------
+
+         Panel 0 haplotypes: resources/example/ReferencePanel/ReferencePanel.hap.gz
+         Panel 0 hap legend: resources/example/ReferencePanel/ReferencePanel.legend.gz
+          Panel 2 genotypes: results/example/ExampleSamplePanel/ExampleSamplePanel.gen
+        Panel 2 sample file: results/example/ExampleSamplePanel/ExampleSamplePanel.sample
+                genetic map: resources/example/ReferencePanel/MtMap.txt
+
+--------------
+ Output files 
+--------------
+
+                main output: results/example/ExampleSamplePanel/ExampleSamplePanel_imputed
+                SNP QC info: results/example/ExampleSamplePanel/ExampleSamplePanel_imputed_info
+             sample QC info: results/example/ExampleSamplePanel/ExampleSamplePanel_imputed_info_by_sample
+                run summary: results/example/ExampleSamplePanel/ExampleSamplePanel_imputed_summary
+                warning log: results/example/ExampleSamplePanel/ExampleSamplePanel_imputed_warnings
+   Panel 2 filtered samples: results/example/ExampleSamplePanel/ExampleSamplePanel_imputed_samples
+
+-----------------
+ Data processing 
+-----------------
+
+-reading genetic map from -m file
+ --filename=[resources/example/ReferencePanel/MtMap.txt]
+ --read 410 SNPs in the analysis interval+buffer region
+
+-reading sample list for Panel 2 from -sample_g file
+ --filename=[results/example/ExampleSamplePanel/ExampleSamplePanel.sample]
+ --read 505 sample IDs (0 females, 505 males)
+ --stored 505/505 sample IDs
+ --wrote filtered sample file [results/example/ExampleSamplePanel/ExampleSamplePanel_imputed_samples]
+
+-reading Panel 2 genotypes from -g file
+ --filename=[results/example/ExampleSamplePanel/ExampleSamplePanel.gen]
+ --detected 505 individuals
+ --read 121 SNPs in the analysis interval+buffer region
+
+-reading Panel 0 haplotypes from -h and -l files
+ --filename=[resources/example/ReferencePanel/ReferencePanel.hap.gz]
+ --filename=[resources/example/ReferencePanel/ReferencePanel.legend.gz]
+ --detected 3566 haplotypes
+ --read 410 SNPs in the analysis interval+buffer region
+
+-removing SNPs that violate the hierarchical data requirements
+ --no SNPs removed
+
+-removing reference-only SNPs from buffer region
+ --removed 0 SNPs
+
+-checking strand alignment between Panel 2 and Panel 0 by allele labels
+ --flipped strand due to allele mismatch at 0 out of 121 SNPs in Panel 2
+
+-aligning allele labels between panels
+
+-removing non-aligned genotyped SNPs
+ --removed 0 out of 90 SNPs with data in multiple panels
+
+--------------
+ Data summary 
+--------------
+
+[type 0 = SNP in Panel 0 only]
+[type 1 = SNP in Panel 1]
+[type 2 = SNP in Panel 2 and all ref panels]
+[type 3 = SNP in Panel 2 only]
+
+-Upstream buffer region
+ --0 type 0 SNPs
+ --0 type 1 SNPs
+ --0 type 2 SNPs
+ --0 type 3 SNPs
+ --0 total SNPs
+
+-Downstream buffer region
+ --0 type 0 SNPs
+ --0 type 1 SNPs
+ --0 type 2 SNPs
+ --0 type 3 SNPs
+ --0 total SNPs
+
+-Analysis region (as defined by -int argument)
+ --320 type 0 SNPs
+ --0 type 1 SNPs
+ --90 type 2 SNPs
+ --31 type 3 SNPs
+ --441 total SNPs
+
+-Output file
+ --320 type 0 SNPs
+ --0 type 1 SNPs
+ --90 type 2 SNPs
+ --31 type 3 SNPs
+ --441 total SNPs
+
+-In total, 441 SNPs will be used in the analysis, including 90 Panel 2 SNPs
+
+-making initial haplotype guesses for Panel 2 by phasing hets at random and imputing missing genotypes from allele freqs
+ --known haplotype alleles from the -g file will not be changed
+
+-some Panel 0 alleles are missing; now imputing from allele freqs
+
+-setting storage space
+
+----------------
+ Run parameters 
+----------------
+
+        reference haplotypes: 3566 [Panel 0]
+           study individuals: 505 [Panel 2]
+           sequence interval: [1,16569]
+                      buffer: 250 kb
+                          Ne: 20000
+           input call thresh: 0.900
+     burn-in MCMC iterations: 1
+       total MCMC iterations: 2 (1 used for inference)
+      HMM states for phasing: 80 [Panel 2]
+   HMM states for imputation: 1000 [Panel 0->2]
+                active flags: <-chrX>
+
+---------
+ Run log 
+---------
+
+RESETTING PARAMETERS FOR "SURROGATE FAMILY" MODELING
+-setting mutation matrices
+-setting switch rates
+
+diploid sampling success rate: (no diploid sampling performed)
+
+haploid sampling success rate: 0.317
+
+
+--------------------------------
+ Imputation accuracy assessment 
+--------------------------------
+
+The table below is based on an internal cross-validation that is performed during each IMPUTE2 run. For this analysis, the program masks the genotypes of one variant at a time in the study data (Panel 2) and imputes the masked genotypes by using the remaining study and reference data. The imputed genotypes are then compared with the original genotypes to produce the concordance statistics shown in the table. You can learn more about this procedure and the contents of the table at http://mathgen.stats.ox.ac.uk/impute/concordance_table_description.html.
+
+In the current analysis, IMPUTE2 masked, imputed, and evaluated 45439 genotypes that were called with high confidence (maximum probability >= 0.90) in the Panel 2 input file (-g or -known_haps_g).
+
+When the masked study genotypes were imputed with reference data from Panel 0, the concordance between original and imputed genotypes was as follows:
+
+  Interval  #Genotypes %Concordance         Interval  %Called %Concordance
+  [0.0-0.1]          0          0.0         [ >= 0.0]   100.0         97.0
+  [0.1-0.2]          0          0.0         [ >= 0.1]   100.0         97.0
+  [0.2-0.3]          0          0.0         [ >= 0.2]   100.0         97.0
+  [0.3-0.4]          0          0.0         [ >= 0.3]   100.0         97.0
+  [0.4-0.5]          0          0.0         [ >= 0.4]   100.0         97.0
+  [0.5-0.6]        203         30.5         [ >= 0.5]   100.0         97.0
+  [0.6-0.7]        731         43.5         [ >= 0.6]    99.6         97.3
+  [0.7-0.8]        639         54.9         [ >= 0.7]    97.9         98.1
+  [0.8-0.9]        557         56.7         [ >= 0.8]    96.5         98.8
+  [0.9-1.0]      43309         99.3         [ >= 0.9]    95.3         99.3

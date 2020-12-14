@@ -1,0 +1,150 @@
+
+======================
+ IMPUTE version 2.3.2 
+======================
+
+Copyright 2008 Bryan Howie, Peter Donnelly, and Jonathan Marchini
+Please see the LICENCE file included with this program for conditions of use.
+
+The seed for the random number generator is 974664581.
+
+Command-line input: impute2 -chrX -m resources/ReferencePanel/MtMap.txt -h resources/ReferencePanel/ReferencePanel.hap.gz -l resources/ReferencePanel/ReferencePanel.legend.gz -g results/test/ExampleSamplePanel/ExampleSamplePanel.gen -sample_g results/test/ExampleSamplePanel/ExampleSamplePanel.sample -int 1 16569 -Ne 20000 -o results/test/ExampleSamplePanel/ExampleSamplePanel_imputed -iter 2 -burnin 1 -k_hap 1000
+
+---------------------------------
+ Nomenclature and data structure 
+---------------------------------
+
+     Panel 0: phased reference haplotypes
+     Panel 2: unphased study genotypes
+
+For optimal results, each successive panel (0,1,2) should contain a subset of the SNPs in the previous panel. When the data structure deviates from this ideal configuration, IMPUTE2 tries to use as much of the available information as possible; see documentation for details.
+
+-------------
+ Input files 
+-------------
+
+         Panel 0 haplotypes: resources/ReferencePanel/ReferencePanel.hap.gz
+         Panel 0 hap legend: resources/ReferencePanel/ReferencePanel.legend.gz
+          Panel 2 genotypes: results/test/ExampleSamplePanel/ExampleSamplePanel.gen
+        Panel 2 sample file: results/test/ExampleSamplePanel/ExampleSamplePanel.sample
+                genetic map: resources/ReferencePanel/MtMap.txt
+
+--------------
+ Output files 
+--------------
+
+                main output: results/test/ExampleSamplePanel/ExampleSamplePanel_imputed
+                SNP QC info: results/test/ExampleSamplePanel/ExampleSamplePanel_imputed_info
+             sample QC info: results/test/ExampleSamplePanel/ExampleSamplePanel_imputed_info_by_sample
+                run summary: results/test/ExampleSamplePanel/ExampleSamplePanel_imputed_summary
+                warning log: results/test/ExampleSamplePanel/ExampleSamplePanel_imputed_warnings
+   Panel 2 filtered samples: results/test/ExampleSamplePanel/ExampleSamplePanel_imputed_samples
+
+-----------------
+ Data processing 
+-----------------
+
+-reading genetic map from -m file
+ --filename=[resources/ReferencePanel/MtMap.txt]
+ --read 410 SNPs in the analysis interval+buffer region
+
+-reading sample list for Panel 2 from -sample_g file
+ --filename=[results/test/ExampleSamplePanel/ExampleSamplePanel.sample]
+ --read 503 sample IDs (0 females, 503 males)
+ --stored 503/503 sample IDs
+ --wrote filtered sample file [results/test/ExampleSamplePanel/ExampleSamplePanel_imputed_samples]
+
+-reading Panel 2 genotypes from -g file
+ --filename=[results/test/ExampleSamplePanel/ExampleSamplePanel.gen]
+ --detected 503 individuals
+ --read 121 SNPs in the analysis interval+buffer region
+
+-reading Panel 0 haplotypes from -h and -l files
+ --filename=[resources/ReferencePanel/ReferencePanel.hap.gz]
+ --filename=[resources/ReferencePanel/ReferencePanel.legend.gz]
+ --detected 73920 haplotypes
+ --read 410 SNPs in the analysis interval+buffer region
+
+-removing SNPs that violate the hierarchical data requirements
+ --no SNPs removed
+
+-removing reference-only SNPs from buffer region
+ --removed 0 SNPs
+
+-checking strand alignment between Panel 2 and Panel 0 by allele labels
+ --flipped strand due to allele mismatch at 0 out of 121 SNPs in Panel 2
+
+-aligning allele labels between panels
+
+-removing non-aligned genotyped SNPs
+ --removed 0 out of 90 SNPs with data in multiple panels
+
+--------------
+ Data summary 
+--------------
+
+[type 0 = SNP in Panel 0 only]
+[type 1 = SNP in Panel 1]
+[type 2 = SNP in Panel 2 and all ref panels]
+[type 3 = SNP in Panel 2 only]
+
+-Upstream buffer region
+ --0 type 0 SNPs
+ --0 type 1 SNPs
+ --0 type 2 SNPs
+ --0 type 3 SNPs
+ --0 total SNPs
+
+-Downstream buffer region
+ --0 type 0 SNPs
+ --0 type 1 SNPs
+ --0 type 2 SNPs
+ --0 type 3 SNPs
+ --0 total SNPs
+
+-Analysis region (as defined by -int argument)
+ --320 type 0 SNPs
+ --0 type 1 SNPs
+ --90 type 2 SNPs
+ --31 type 3 SNPs
+ --441 total SNPs
+
+-Output file
+ --320 type 0 SNPs
+ --0 type 1 SNPs
+ --90 type 2 SNPs
+ --31 type 3 SNPs
+ --441 total SNPs
+
+-In total, 441 SNPs will be used in the analysis, including 90 Panel 2 SNPs
+
+-making initial haplotype guesses for Panel 2 by phasing hets at random and imputing missing genotypes from allele freqs
+ --known haplotype alleles from the -g file will not be changed
+
+-some Panel 0 alleles are missing; now imputing from allele freqs
+
+-setting storage space
+
+----------------
+ Run parameters 
+----------------
+
+        reference haplotypes: 73920 [Panel 0]
+           study individuals: 503 [Panel 2]
+           sequence interval: [1,16569]
+                      buffer: 250 kb
+                          Ne: 20000
+           input call thresh: 0.900
+     burn-in MCMC iterations: 1
+       total MCMC iterations: 2 (1 used for inference)
+      HMM states for phasing: 80 [Panel 2]
+   HMM states for imputation: 1000 [Panel 0->2]
+                active flags: <-chrX>
+
+---------
+ Run log 
+---------
+
+RESETTING PARAMETERS FOR "SURROGATE FAMILY" MODELING
+-setting mutation matrices
+-setting switch rates

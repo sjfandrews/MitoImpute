@@ -1,0 +1,19 @@
+# snakemake -j 1 --use-conda
+## Config file for setting options in the mtImpute snakemake pipeline
+
+## SAMPLE: File name of plink files
+## DATAIN: File path to plink files
+## DATAOUT: File path to write files out to
+## REFDATA: File path to location of reference panel
+
+SAMPLE: 'ExampleSamplePanel'
+DATAIN: 'resources/example/SamplePanel'
+DATAOUT: "results/example"
+REFDATA: "resources/example/ReferencePanel"
+INFOCUT: 0
+ITER: 2
+BURNIN: 1
+KHAP: 1000
+
+## Uncommenting below will use the full reference panel
+#REFDATA: "ReferencePanel"

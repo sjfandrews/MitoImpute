@@ -1,0 +1,8 @@
+channels:
+    - bioconda
+    - bioconda/label/cf201901
+    - conda-forge
+    - sjfandrews
+dependencies:
+    - vt
+    - bcftools=1.11

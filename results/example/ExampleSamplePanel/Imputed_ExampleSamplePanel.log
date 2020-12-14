@@ -1,0 +1,34 @@
+PLINK v1.90p 64-bit (16 Jun 2020)
+Options in effect:
+  --gen results/example/ExampleSamplePanel/ExampleSamplePanel_imputed_ChromFixed
+  --hard-call-threshold 0.49
+  --keep-allele-order
+  --make-bed
+  --out results/example/ExampleSamplePanel/Imputed_ExampleSamplePanel
+  --output-chr 26
+  --sample results/example/ExampleSamplePanel/ExampleSamplePanel_imputed_samples
+
+Hostname: Sheas-iMac.local
+Working directory: /Users/sheaandrews/GitCode/MitoImpute
+Start time: Mon Dec 14 14:58:16 2020
+
+Random number seed: 1607975896
+32768 MB RAM detected; reserving 16384 MB for main workspace.
+--data:
+results/example/ExampleSamplePanel/Imputed_ExampleSamplePanel-temporary.bed +
+results/example/ExampleSamplePanel/Imputed_ExampleSamplePanel-temporary.bim +
+results/example/ExampleSamplePanel/Imputed_ExampleSamplePanel-temporary.fam
+written.
+441 variants loaded from .bim file.
+505 people (505 males, 0 females) loaded from .fam.
+Using 1 thread (no multithreaded calculations invoked).
+Before main variant filters, 505 founders and 0 nonfounders present.
+Calculating allele frequencies... done.
+Total genotyping rate is 0.999627.
+441 variants and 505 people pass filters and QC.
+Note: No phenotypes present.
+--make-bed to results/example/ExampleSamplePanel/Imputed_ExampleSamplePanel.bed
++ results/example/ExampleSamplePanel/Imputed_ExampleSamplePanel.bim +
+results/example/ExampleSamplePanel/Imputed_ExampleSamplePanel.fam ... done.
+
+End time: Mon Dec 14 14:58:16 2020

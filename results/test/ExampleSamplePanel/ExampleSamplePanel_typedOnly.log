@@ -1,0 +1,27 @@
+PLINK v1.90b5.2 64-bit (9 Jan 2018)
+Options in effect:
+  --bfile results/test/ExampleSamplePanel/chrMT_ExampleSamplePanel
+  --bim results/test/ExampleSamplePanel/chrMT_ExampleSamplePanel_rcrsFlipped.bim
+  --keep-allele-order
+  --out results/test/ExampleSamplePanel/ExampleSamplePanel_typedOnly
+  --recode
+
+Hostname: Sheas-iMac.local
+Working directory: /Users/sheaandrews/GitCode/MitoImpute
+Start time: Mon Dec 14 09:19:07 2020
+
+Random number seed: 1607955547
+32768 MB RAM detected; reserving 16384 MB for main workspace.
+121 variants loaded from .bim file.
+503 people (503 males, 0 females) loaded from .fam.
+Using 1 thread (no multithreaded calculations invoked).
+Before main variant filters, 503 founders and 0 nonfounders present.
+Calculating allele frequencies... done.
+Total genotyping rate is 0.999474.
+121 variants and 503 people pass filters and QC.
+Note: No phenotypes present.
+--recode ped to
+results/test/ExampleSamplePanel/ExampleSamplePanel_typedOnly.ped +
+results/test/ExampleSamplePanel/ExampleSamplePanel_typedOnly.map ... done.
+
+End time: Mon Dec 14 09:19:07 2020

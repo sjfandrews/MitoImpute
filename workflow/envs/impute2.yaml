@@ -1,0 +1,5 @@
+channels:
+    - bioconda
+    - conda-forge
+dependencies:
+    - impute2=2.3.2
