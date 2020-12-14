@@ -14,35 +14,16 @@
    - vcf format
 8. Generates plots for Info Score and assigned Haplogroups
 
-<img align="center" src=dag_mtImpute.svg alt="DAG">
+<img align="center" src=images/rulegraph.svg alt="DAG">
 
 ## Getting Started
 ### Installation
+
 Be sure to download and install the latest versions of the following software packages:
 1. [Python 3](https://www.python.org/downloads/)
 2. [Snakemake](https://snakemake.readthedocs.io/en/stable/getting_started/installation.html)
-3. [R](https://cran.r-project.org/)
-4. [PLINK](https://www.cog-genomics.org/plink2)
-5. [Impute2](https://mathgen.stats.ox.ac.uk/impute/impute_v2.html#download)
 
-Plink and Impute2 executibles should be located within the the /usr/local/bin/ directory. The following code can be used to move the executibles: ```cp </path/to/executible> /usr/local/bin/```
-
-The following R packages are also required:
-1. [tidyverse](https://www.tidyverse.org/packages/)
-2. [Hi-MC](https://github.com/vserch/himc)
-3. [ggfittext](https://cran.r-project.org/web/packages/ggfittext/index.html)
-
-Note that the development versions of Hi-MC (required for mitochondrial haplogroup assignment) are required.
-
-```r
-## Install tidyverse, rmarkdown, and devtools
-install.packages(c("tidyverse", "ggfittext", "devtools"))
-
-## Install HiMC and ggforce
-devtools::install_github(c("vserch/himc/HiMC"))
-```
-
-Once all the prerequiste software is installed, MitoImpute can be installed on a git-enabled machine by typeing:
+MitoImpute can be installed on a git-enabled machine by typeing:
 
 ```bash
 git clone https://github.com/sjfandrews/MitoImpute
@@ -54,10 +35,10 @@ To impute mitochondrial SNPs in a study dataset, run the following code:
 
 ```bash
 cd MitoImpute
-snakemake -s mtImpute.smk --configfile mtImpute_config.yaml
+snakemake -j --use-conda
 ```
 
-Options for the snakemake file are set in the corresponding config file ```mtImpute_config.yaml``` file. The avaliable options are:
+Options for the snakemake file are set in the corresponding config file ```config/config.yaml``` file. The avaliable options are:
 
 ```bash
 SAMPLE: 'name of input binary plink file'
@@ -72,14 +53,12 @@ BURNIN: Number of MCMC iteractions to discard as burn-in
 The default options are for the example dataset.
 
 #### Reference panel
-A custom reference panel for imputation can be found in the ```MitoImpute/ReferencePanel/``` directory. The key files consist of:
+A custom reference panel for imputation can be found in the ```resources/ReferencePanel/``` directory. The key files consist of:
 1. -h: A file of known haplotypes ```(ReferencePanel.hap.gz)```.
 2. -l: Legend file(s) with information about the SNPs in the -h file ```(ReferencePanel.legend.gz)```
 3. -m: A fine-scale recombination map for the region to be analyzed ```(MtMap.txt)```
 
-setting REFDATA in the ```mtImpute_config.yaml``` file to ```ReferencePanel``` will automaticlay call these files.
-
-Further details on the pipeline for constructing the reference panel can be found in the [MitoImputePrep](https://github.com/sjfandrews/MitoImputePrep) repo.
+setting REFDATA in the ```config/config.yaml``` file to ```resources/ReferencePanel``` will automaticlay call these files.
 
 #### Parallelization
 Snakemake handles parallelization of jobs using [wildcards](https://snakemake.readthedocs.io/en/stable/snakefiles/rules.html#wildcards). Defining a list of sample names in the config.yaml file and specifing the [number of avaliable cores](https://snakemake.readthedocs.io/en/stable/executable.html#useful-command-line-arguments) in the command line will result in snakemake submitting jobs in parallel.
@@ -98,8 +77,33 @@ KHAP: 1000
 
 the corresponding comand line argument
 ```
-snakemake -s mtImpute.smk --configfile mtImpute_config.yaml -j
+snakemake -j --use-conda
 ```
 
 #### Cluster Execution
 For excuting this pipline on a cluster computing environment, refer to [SnakeMake's readme](https://snakemake.readthedocs.io/en/stable/executable.html#cluster-execution).
+
+## Dependencies
+
+MitoImpute uses conda environments to handle package dependencies - if you dont want to use conda envs ensure the following software and packages are installed.
+
+1. [R](https://cran.r-project.org/)
+2. [PLINK](https://www.cog-genomics.org/plink2)
+3. [Impute2](https://mathgen.stats.ox.ac.uk/impute/impute_v2.html#download)
+
+Plink and Impute2 executibles should be located within the the /usr/local/bin/ directory. The following code can be used to move the executibles: ```cp </path/to/executible> /usr/local/bin/```
+
+The following R packages are also required:
+1. [tidyverse](https://www.tidyverse.org/packages/)
+2. [Hi-MC](https://github.com/vserch/himc)
+3. [ggfittext](https://cran.r-project.org/web/packages/ggfittext/index.html)
+
+Note that the development versions of Hi-MC (required for mitochondrial haplogroup assignment) are required.
+
+```r
+## Install tidyverse, rmarkdown, and devtools
+install.packages(c("tidyverse", "ggfittext", "devtools"))
+
+## Install HiMC
+devtools::install_github(c("vserch/himc/HiMC"))
+```
