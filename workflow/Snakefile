@@ -17,82 +17,100 @@ OXFORD = ["gen", "sample"]
 
 rule all:
     input:
-        expand(DATAOUT + "/{sample}/Imputed_{sample}.{ext}", ext=BPLINK, sample=SAMPLE),
-        expand(DATAOUT + "/{sample}/Imputed_{sample}.{ext}", ext=PLINK, sample=SAMPLE),
-        expand(DATAOUT + "/{sample}/Imputed_{sample}.vcf", sample=SAMPLE),
-        expand(DATAOUT + "/{sample}/stats/{sample}_Info.png", sample=SAMPLE),
-        expand(DATAOUT + "/{sample}/stats/{sample}_InfoHiMC.png", sample=SAMPLE),
-        expand(DATAOUT + "/{sample}/stats/{sample}_Haplogroups.txt", sample=SAMPLE),
-        expand(DATAOUT + "/{sample}/stats/{sample}_HaplogroupMatch.png", sample=SAMPLE)
+        expand("{dataout}/{sample}/Imputed_{sample}.{ext}", ext=BPLINK, sample=SAMPLE, dataout=DATAOUT),
+        expand("{dataout}/{sample}/Imputed_{sample}.{ext}", ext=PLINK, sample=SAMPLE, dataout=DATAOUT),
+        expand("{dataout}/{sample}/Imputed_{sample}.vcf", sample=SAMPLE, dataout=DATAOUT),
+        expand("{dataout}/{sample}/stats/{sample}_Info.png", sample=SAMPLE, dataout=DATAOUT),
+        expand("{dataout}/{sample}/stats/{sample}_InfoHiMC.png", sample=SAMPLE, dataout=DATAOUT),
+        expand("{dataout}/{sample}/stats/{sample}_Haplogroups.txt", sample=SAMPLE, dataout=DATAOUT),
+        expand("{dataout}/{sample}/stats/{sample}_HaplogroupMatch.png", sample=SAMPLE, dataout=DATAOUT)
 
 rule SexFam:
-    input: DATAIN + "/{sample}.fam"
-    output: DATAOUT + "/{sample}/{sample}_maleOnly.fam"
-    shell: """
-        awk '{{$5 = "1"; print}}' {input} > {output}
-    """
+    input: expand("{datain}/{{sample}}.fam", datain=DATAIN)
+    output: temp("{dataout}/{sample}/{sample}_maleOnly.fam")
+    log:
+        'logs/{dataout}/SexFam:{sample}.stdout'
+    shell:
+        """
+        (awk '{{$5 = "1"; print}}' {input} > {output}) &> {log}
+        """
 
 ## Extract SNPs on mitochondrial genome (26)
 ## Remove SNPs where allels are non-ACTG
 rule chrMT:
     input:
-        bplink = expand(DATAIN + "/{{sample}}.{ext}", ext=BPLINK),
-        fam = DATAOUT + "/{sample}/{sample}_maleOnly.fam"
+        bplink = expand("{datain}/{{sample}}.{ext}", ext=BPLINK, datain=DATAIN),
+        fam = "{dataout}/{sample}/{sample}_maleOnly.fam"
     output:
-        expand(DATAOUT + "/{{sample}}/chrMT_{{sample}}.{ext}", ext=BPLINK)
+        temp(multiext("{dataout}/{sample}/chrMT_{sample}", ".bed", ".bim", ".fam"))
     params:
-        inFile = DATAIN + "/{sample}",
-        out = DATAOUT + "/{sample}/chrMT_{sample}"
+        inFile = lambda wildcards, input: input[0][:-4],
+        prefix = lambda wildcards, output: output[0][:-4]
+    log:
+        'logs/{dataout}/chrMT:{sample}.log',
     conda:
         "envs/plink.yaml"
     shell:
-        'plink --bfile {params.inFile} --fam {input.fam} \
+        """
+        plink --bfile {params.inFile} --fam {input.fam} \
         --chr 26 --output-chr 26 --snps-only just-acgt \
-        --keep-allele-order --make-bed --out {params.out}'
+        --keep-allele-order --make-bed --out {params.prefix} &> {log}
+        """
 
 ## Check if mtSNPs are mapped to rCRS, if not liftover
 rule yri2rcrs_flip:
     input:
         referenceSnps = expand('{RefData}/ReferenceSNPs.txt', RefData = REFDATA),
-        bim = DATAOUT + "/{sample}/chrMT_{sample}.bim"
+        bim = "{dataout}/{sample}/chrMT_{sample}.bim"
     output:
-        bim = DATAOUT + "/{sample}/chrMT_{sample}_rcrsFlipped.bim"
+        bim = temp("{dataout}/{sample}/chrMT_{sample}_rcrsFlipped.bim")
+    # log:
+    #     'logs/{dataout}/yri2rcrs_flip:{sample}.log'
     conda:
         "envs/r.yaml"
     script:
-        'scripts/yri_to_rcrs_flip.R'
+        "scripts/yri_to_rcrs_flip.R"
+        # "&> {log}"
 
 ## Convert sample binary plink files to oxford format
 rule bplink2oxford:
     input:
-        bplink = expand(DATAOUT + "/{{sample}}/chrMT_{{sample}}.{ext}", ext=BPLINK),
-        bim = DATAOUT + "/{sample}/chrMT_{sample}_rcrsFlipped.bim"
+        bplink = expand("{{dataout}}/{{sample}}/chrMT_{{sample}}.{ext}", ext=BPLINK),
+        bim = "{dataout}/{sample}/chrMT_{sample}_rcrsFlipped.bim"
     output:
-        expand(DATAOUT + "/{{sample}}/{{sample}}.{ext}", ext=OXFORD)
+        temp(multiext("{dataout}/{sample}/{sample}", ".gen", ".sample"))
     params:
-        inFile = DATAOUT + "/{sample}/chrMT_{sample}",
-        out = DATAOUT + "/{sample}/{sample}"
+        inFile = lambda wildcards, input: input[0][:-4],
+        prefix = lambda wildcards, output: output[0][:-4]
+    log:
+        'logs/{dataout}/bplink2oxford:{sample}.log',
     conda:
         "envs/plink.yaml"
     shell:
-        'plink --bfile {params.inFile} --bim {input.bim} \
-        --recode oxford --keep-allele-order --out {params.out}'
+        """
+        plink --bfile {params.inFile} --bim {input.bim} \
+        --recode oxford --keep-allele-order --out {params.prefix} &> {log}
+        """
 
 ## Convert sample binary plink files to .map/.ped files
 rule bplink2plink:
     input:
-        bplink = expand(DATAOUT + "/{{sample}}/chrMT_{{sample}}.{ext}", ext=BPLINK),
-        bim = DATAOUT + "/{sample}/chrMT_{sample}_rcrsFlipped.bim"
+        bplink = expand("{{dataout}}/{{sample}}/chrMT_{{sample}}.{ext}", ext=BPLINK),
+        bim = "{dataout}/{sample}/chrMT_{sample}_rcrsFlipped.bim"
     output:
-        expand(DATAOUT + "/{{sample}}/{{sample}}_typedOnly.{ext}", ext=PLINK)
+        multiext("{dataout}/{sample}/{sample}_typedOnly", ".map", ".ped")
     params:
-        inFile = DATAOUT + "/{sample}/chrMT_{sample}",
-        out = DATAOUT + "/{sample}/{sample}_typedOnly"
+        inFile = lambda wildcards, input: input[0][:-4],
+        prefix = lambda wildcards, output: output[0][:-4]
+    log:
+        'logs/{dataout}/bplink2plink:{sample}.log',
     conda:
         "envs/plink.yaml"
     shell:
-        'plink --bfile {params.inFile} --bim {input.bim} \
-        --recode --keep-allele-order --out {params.out}'
+        """
+        plink --bfile {params.inFile} --bim {input.bim} \
+        --recode --keep-allele-order --out {params.prefix} &> {log}
+        """
 
 ## Use Impute to impute mtSNPs
 rule Impute2:
@@ -100,97 +118,112 @@ rule Impute2:
         m = expand('{RefData}/MtMap.txt', RefData=REFDATA),
         h = expand('{RefData}/ReferencePanel.hap.gz', RefData=REFDATA),
         l = expand('{RefData}/ReferencePanel.legend.gz', RefData=REFDATA),
-        g = DATAOUT + "/{sample}/{sample}.gen",
-        sample = DATAOUT + "/{sample}/{sample}.sample",
+        g = "{dataout}/{sample}/{sample}.gen",
+        sample = "{dataout}/{sample}/{sample}.sample",
     output:
-        DATAOUT + "/{sample}/{sample}_imputed",
-        DATAOUT + "/{sample}/{sample}_imputed_samples",
-        DATAOUT + "/{sample}/{sample}_imputed_info"
+        "{dataout}/{sample}/{sample}_imputed",
+        "{dataout}/{sample}/{sample}_imputed_samples",
+        "{dataout}/{sample}/{sample}_imputed_info"
     params:
-        out = DATAOUT + "/{sample}/{sample}_imputed",
+        prefix = lambda wildcards, output: output[0],
         iter = ITER,
         burnin = BURNIN,
         khap = KHAP
+    log:
+        'logs/{dataout}/Impute2:{sample}.log',
     conda:
         "envs/impute2.yaml"
     shell:
         """
         impute2 -chrX -m {input.m} -h {input.h} -l {input.l} -g {input.g} \
-        -sample_g {input.sample} -int 1 16569 -Ne 20000 -o {params.out} \
-        -iter {params.iter} -burnin {params.burnin} -k_hap {params.khap}
+        -sample_g {input.sample} -int 1 16569 -Ne 20000 -o {params.prefix} \
+        -iter {params.iter} -burnin {params.burnin} -k_hap {params.khap} &> {log}
         """
 
 ## Change MT chromsome name to '26'
 rule FixChromName:
     input:
-        InFile = DATAOUT + "/{sample}/{sample}_imputed"
+        InFile = "{dataout}/{sample}/{sample}_imputed"
     output:
-        OutFile = DATAOUT + "/{sample}/{sample}_imputed_ChromFixed"
+        OutFile = "{dataout}/{sample}/{sample}_imputed_ChromFixed"
     conda:
         "envs/plink.yaml"
-    shell:"""
+    shell:
+        """
         awk '{{$1 = "26"; print}}' {input.InFile} > {output.OutFile}
-    """
+        """
 
 ## Convert Oxford files to binary Plink files
 rule oxford2bed:
     input:
-        gen = DATAOUT + "/{sample}/{sample}_imputed_ChromFixed",
-        sample = DATAOUT + "/{sample}/{sample}_imputed_samples"
+        gen = "{dataout}/{sample}/{sample}_imputed_ChromFixed",
+        sample = "{dataout}/{sample}/{sample}_imputed_samples"
     output:
-        expand(DATAOUT + "/{{sample}}/Imputed_{{sample}}.{ext}", ext=BPLINK)
+        multiext("{dataout}/{sample}/Imputed_{sample}", ".bed", ".bim", ".fam")
     params:
-        out = DATAOUT + "/{sample}/Imputed_{sample}"
+        prefix = lambda wildcards, output: output[0][:-4]
+    log:
+        'logs/{dataout}/oxford2bed:{sample}.log',
     conda:
         "envs/plink.yaml"
     shell:
-        'plink --gen {input.gen} --sample {input.sample} --hard-call-threshold 0.49 \
-        --keep-allele-order --make-bed --output-chr 26 --out {params.out}'
+        """
+        plink --gen {input.gen} --sample {input.sample} --hard-call-threshold 0.49 \
+        --keep-allele-order --make-bed --output-chr 26 --out {params.prefix} &> {log}
+        """
 
 ## Convert Oxford files to .map/.ped files
 rule oxford2ped:
     input:
-        gen = DATAOUT + "/{sample}/{sample}_imputed_ChromFixed",
-        sample = DATAOUT + "/{sample}/{sample}_imputed_samples"
+        gen = "{dataout}/{sample}/{sample}_imputed_ChromFixed",
+        sample = "{dataout}/{sample}/{sample}_imputed_samples"
     output:
-        expand(DATAOUT + "/{{sample}}/Imputed_{{sample}}.{ext}", ext=PLINK)
+        multiext("{dataout}/{sample}/Imputed_{sample}", ".map", ".ped")
     params:
-        out = DATAOUT + "/{sample}/Imputed_{sample}"
+        prefix = lambda wildcards, output: output[0][:-4]
+    log:
+        'logs/{dataout}/oxford2ped:{sample}.log',
     conda:
         "envs/plink.yaml"
     shell:
-        'plink --gen {input.gen} --sample {input.sample} --hard-call-threshold 0.49 \
-        --keep-allele-order --output-chr 26 --recode --out {params.out}'
+        """
+        plink --gen {input.gen} --sample {input.sample} --hard-call-threshold 0.49 \
+        --keep-allele-order --output-chr 26 --recode --out {params.prefix} &> {log}
+        """
 
 ## Convert Oxford files to .vcf files
 rule oxford2vcf:
     input:
-        gen = DATAOUT + "/{sample}/{sample}_imputed_ChromFixed",
-        sample = DATAOUT + "/{sample}/{sample}_imputed_samples"
+        gen = "{dataout}/{sample}/{sample}_imputed_ChromFixed",
+        sample = "{dataout}/{sample}/{sample}_imputed_samples"
     output:
-        DATAOUT + "/{sample}/Imputed_{sample}.vcf"
+        "{dataout}/{sample}/Imputed_{sample}.vcf"
     params:
-        out = DATAOUT + "/{sample}/Imputed_{sample}"
+        prefix = lambda wildcards, output: output[0][:-4]
+    log:
+        'logs/{dataout}/oxford2vcf:{sample}.log',
     conda:
         "envs/plink.yaml"
     shell:
-        'plink --gen {input.gen} --sample {input.sample} --hard-call-threshold 0.49 \
-        --keep-allele-order --output-chr 26 --recode vcf --out {params.out}'
+        """
+        plink --gen {input.gen} --sample {input.sample} --hard-call-threshold 0.49 \
+        --keep-allele-order --output-chr 26 --recode vcf --out {params.prefix} &> {log}
+        """
 
 rule plots:
     input:
-        typ_map = DATAOUT + "/{sample}/{sample}_typedOnly.map",
-        typ_ped = DATAOUT + "/{sample}/{sample}_typedOnly.ped",
-        imp_map = DATAOUT + "/{sample}/Imputed_{sample}.map",
-        imp_ped = DATAOUT + "/{sample}/Imputed_{sample}.ped",
-        imp_info = DATAOUT + "/{sample}/{sample}_imputed_info",
+        typ_map = "{dataout}/{sample}/{sample}_typedOnly.map",
+        typ_ped = "{dataout}/{sample}/{sample}_typedOnly.ped",
+        imp_map = "{dataout}/{sample}/Imputed_{sample}.map",
+        imp_ped = "{dataout}/{sample}/Imputed_{sample}.ped",
+        imp_info = "{dataout}/{sample}/{sample}_imputed_info",
     output:
-        InfoPlot = DATAOUT + "/{sample}/stats/{sample}_Info.png",
-        InfoHimcPlot = DATAOUT + "/{sample}/stats/{sample}_InfoHiMC.png",
-        haplgroups = DATAOUT + "/{sample}/stats/{sample}_Haplogroups.txt",
-        HaplogroupPlot = DATAOUT + "/{sample}/stats/{sample}_HaplogroupMatch.png"
+        InfoPlot = "{dataout}/{sample}/stats/{sample}_Info.png",
+        InfoHimcPlot = "{dataout}/{sample}/stats/{sample}_InfoHiMC.png",
+        haplgroups = "{dataout}/{sample}/stats/{sample}_Haplogroups.txt",
+        HaplogroupPlot = "{dataout}/{sample}/stats/{sample}_HaplogroupMatch.png"
     params:
-        output_dir = DATAOUT + "/{sample}/stats",
+        output_dir = "{dataout}/{sample}/stats",
         sample = '{sample}',
         info_cut = INFOCUT,
     conda:

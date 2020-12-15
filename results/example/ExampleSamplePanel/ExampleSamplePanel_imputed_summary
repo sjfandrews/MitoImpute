@@ -6,7 +6,7 @@
 Copyright 2008 Bryan Howie, Peter Donnelly, and Jonathan Marchini
 Please see the LICENCE file included with this program for conditions of use.
 
-The seed for the random number generator is 1316300470.
+The seed for the random number generator is 1737450276.
 
 Command-line input: impute2 -chrX -m resources/example/ReferencePanel/MtMap.txt -h resources/example/ReferencePanel/ReferencePanel.hap.gz -l resources/example/ReferencePanel/ReferencePanel.legend.gz -g results/example/ExampleSamplePanel/ExampleSamplePanel.gen -sample_g results/example/ExampleSamplePanel/ExampleSamplePanel.sample -int 1 16569 -Ne 20000 -o results/example/ExampleSamplePanel/ExampleSamplePanel_imputed -iter 2 -burnin 1 -k_hap 1000
 
@@ -151,7 +151,7 @@ RESETTING PARAMETERS FOR "SURROGATE FAMILY" MODELING
 
 diploid sampling success rate: (no diploid sampling performed)
 
-haploid sampling success rate: 0.317
+haploid sampling success rate: 0.318
 
 
 --------------------------------
@@ -172,6 +172,6 @@ When the masked study genotypes were imputed with reference data from Panel 0, t
   [0.4-0.5]          0          0.0         [ >= 0.4]   100.0         97.0
   [0.5-0.6]        203         30.5         [ >= 0.5]   100.0         97.0
   [0.6-0.7]        731         43.5         [ >= 0.6]    99.6         97.3
-  [0.7-0.8]        639         54.9         [ >= 0.7]    97.9         98.1
-  [0.8-0.9]        557         56.7         [ >= 0.8]    96.5         98.8
-  [0.9-1.0]      43309         99.3         [ >= 0.9]    95.3         99.3
+  [0.7-0.8]        626         54.0         [ >= 0.7]    97.9         98.1
+  [0.8-0.9]        581         58.7         [ >= 0.8]    96.6         98.8
+  [0.9-1.0]      43298         99.3         [ >= 0.9]    95.3         99.3
