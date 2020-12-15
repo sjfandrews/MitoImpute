@@ -1,5 +1,5 @@
 # MitoImpute
-**mtImpute.smk** is a snakemake pipeline for the imputation of mitochondrial genomes using Impute2 Chromosome X protocol. The steps in the pipline include:
+**MitoImpute** is a snakemake pipeline for the imputation of mitochondrial genomes using Impute2 Chromosome X protocol. The steps in the pipline include:
 1. Change sex of all samples to male (as males are haploid for the X chromsome)
 2. Extract mtSNPs from Bplink (.bed/.bim/.fam)
 3. Check reference alignment (hg19, Yoruba, or b37, rCRS) of mtSNPs - converts YRI to rCRS.
@@ -20,7 +20,7 @@
 ### Installation
 
 Be sure to download and install the latest versions of the following software packages:
-1. [Python 3](https://www.python.org/downloads/)
+1. [Miniconda Python 3](https://conda.io/en/latest/miniconda.html)
 2. [Snakemake](https://snakemake.readthedocs.io/en/stable/getting_started/installation.html)
 
 MitoImpute can be installed on a git-enabled machine by typeing:
@@ -34,7 +34,6 @@ git clone https://github.com/sjfandrews/MitoImpute
 To impute mitochondrial SNPs in a study dataset, run the following code:
 
 ```bash
-cd MitoImpute
 snakemake -j --use-conda
 ```
 
@@ -77,7 +76,7 @@ KHAP: 1000
 
 the corresponding comand line argument
 ```
-snakemake -j --use-conda
+snakemake -j 3 --use-conda
 ```
 
 #### Cluster Execution
@@ -85,7 +84,7 @@ For excuting this pipline on a cluster computing environment, refer to [SnakeMak
 
 ## Dependencies
 
-MitoImpute uses conda environments to handle package dependencies - if you dont want to use conda envs ensure the following software and packages are installed.
+MitoImpute uses snakemake conda environments to handle package dependencies - if you dont want to use conda envs (which is not recomended) ensure the following software and packages are installed.
 
 1. [R](https://cran.r-project.org/)
 2. [PLINK](https://www.cog-genomics.org/plink2)
