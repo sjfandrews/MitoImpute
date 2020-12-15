@@ -49,7 +49,7 @@ po/*~
 .snakemake/*
 .snakejob/*
 
-result/*
+results/*
 Rplots.pdf
 cluster.yaml
 sandbox/*
