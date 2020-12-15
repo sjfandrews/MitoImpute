@@ -1,5 +1,15 @@
 #!/usr/bin/env Rscript
 
+## Snakemake INput
+reference <- snakemake@input[['referenceSnps']]
+bimfile <- snakemake@input[['bim']]
+outfile <- snakemake@output[['bim']]
+log_path = snakemake@log[[1]]
+
+## Logging messages
+con <- file(log_path, open = "wt")
+sink(con, type = "message")
+
 suppressPackageStartupMessages(library(readr))
 suppressPackageStartupMessages(library(dplyr))
 
@@ -45,11 +55,6 @@ yri_rcrs <- Vectorize(function(x){
 nucleotide_flip <- function(x){
   dplyr::recode(x, "A" = "T", "T" = "A", "G" = "C", "C" = "G", .default = x)
 }
-
-## Snakemake INput
-reference <- snakemake@input[['referenceSnps']]
-bimfile <- snakemake@input[['bim']]
-outfile <- snakemake@output[['bim']]
 
 ##  Read in reference
 ref <- read_tsv(reference, col_types = "cicciid",
@@ -121,3 +126,5 @@ message(sprintf(strng, sum(out$flip, na.rm = T), nrow(out)))
 out %>%
   select(CHROM, SNP, cm, POS, A1_flip, A2_flip)  %>%
   write_tsv(outfile, col_names = F)
+
+sink()

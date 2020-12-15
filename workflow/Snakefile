@@ -29,7 +29,7 @@ rule SexFam:
     input: expand("{datain}/{{sample}}.fam", datain=DATAIN)
     output: temp("{dataout}/{sample}/{sample}_maleOnly.fam")
     log:
-        'logs/{dataout}/SexFam:{sample}.stdout'
+        'logs/{dataout}/SexFam:{sample}.log'
     shell:
         """
         (awk '{{$5 = "1"; print}}' {input} > {output}) &> {log}
@@ -64,13 +64,12 @@ rule yri2rcrs_flip:
         bim = "{dataout}/{sample}/chrMT_{sample}.bim"
     output:
         bim = temp("{dataout}/{sample}/chrMT_{sample}_rcrsFlipped.bim")
-    # log:
-    #     'logs/{dataout}/yri2rcrs_flip:{sample}.log'
+    log:
+        'logs/{dataout}/yri2rcrs_flip:{sample}.log'
     conda:
         "envs/r.yaml"
     script:
         "scripts/yri_to_rcrs_flip.R"
-        # "&> {log}"
 
 ## Convert sample binary plink files to oxford format
 rule bplink2oxford:
@@ -226,6 +225,8 @@ rule plots:
         output_dir = "{dataout}/{sample}/stats",
         sample = '{sample}',
         info_cut = INFOCUT,
+    log:
+        'logs/{dataout}/plots:{sample}.log',
     conda:
         'envs/r.yaml'
     script:
