@@ -5,12 +5,13 @@ configfile: 'config/config.yaml'
 SAMPLE = config['SAMPLE']
 DATAIN = config['DATAIN']
 DATAOUT = config['DATAOUT']
-REFDATA = config['REFDATA']
+REFAF = config['REFAF']
 INFOCUT = config['INFOCUT']
 ITER = config['ITER']
 BURNIN = config['BURNIN']
 KHAP = config['KHAP']
 
+## File extensions
 BPLINK = ["bed", "bim", "fam"]
 PLINK = ["map", "ped"]
 OXFORD = ["gen", "sample"]
@@ -60,7 +61,7 @@ rule chrMT:
 ## Check if mtSNPs are mapped to rCRS, if not liftover
 rule yri2rcrs_flip:
     input:
-        referenceSnps = expand('{RefData}/ReferenceSNPs.txt', RefData = REFDATA),
+        referenceSnps = expand('resources/ReferencePanel_v1_{af}/ReferencePanelSNPs_MAF{af}.txt', af=REFAF),
         bim = "{dataout}/{sample}/chrMT_{sample}.bim"
     output:
         bim = temp("{dataout}/{sample}/chrMT_{sample}_rcrsFlipped.bim")
@@ -74,7 +75,7 @@ rule yri2rcrs_flip:
 ## Convert sample binary plink files to oxford format
 rule bplink2oxford:
     input:
-        bplink = expand("{{dataout}}/{{sample}}/chrMT_{{sample}}.{ext}", ext=BPLINK),
+        bplink = multiext("{dataout}/{sample}/chrMT_{sample}", ".bed", ".bim", ".fam"),
         bim = "{dataout}/{sample}/chrMT_{sample}_rcrsFlipped.bim"
     output:
         temp(multiext("{dataout}/{sample}/{sample}", ".gen", ".sample"))
@@ -94,7 +95,7 @@ rule bplink2oxford:
 ## Convert sample binary plink files to .map/.ped files
 rule bplink2plink:
     input:
-        bplink = expand("{{dataout}}/{{sample}}/chrMT_{{sample}}.{ext}", ext=BPLINK),
+        bplink = multiext("{dataout}/{sample}/chrMT_{sample}", ".bed", ".bim", ".fam"),
         bim = "{dataout}/{sample}/chrMT_{sample}_rcrsFlipped.bim"
     output:
         multiext("{dataout}/{sample}/{sample}_typedOnly", ".map", ".ped")
@@ -114,15 +115,15 @@ rule bplink2plink:
 ## Use Impute to impute mtSNPs
 rule Impute2:
     input:
-        m = expand('{RefData}/MtMap.txt', RefData=REFDATA),
-        h = expand('{RefData}/ReferencePanel.hap.gz', RefData=REFDATA),
-        l = expand('{RefData}/ReferencePanel.legend.gz', RefData=REFDATA),
+        m = expand('resources/ReferencePanel_v1_{af}/ReferencePanel_v1_{af}_MtMap.txt', af=REFAF),
+        h = expand('resources/ReferencePanel_v1_{af}/ReferencePanel_v1_{af}.hap.gz', af=REFAF),
+        l = expand('resources/ReferencePanel_v1_{af}/ReferencePanel_v1_{af}.legend.gz', af=REFAF),
         g = "{dataout}/{sample}/{sample}.gen",
         sample = "{dataout}/{sample}/{sample}.sample",
     output:
-        "{dataout}/{sample}/{sample}_imputed",
-        "{dataout}/{sample}/{sample}_imputed_samples",
-        "{dataout}/{sample}/{sample}_imputed_info"
+        imp = "{dataout}/{sample}/{sample}_imputed",
+        samp = "{dataout}/{sample}/{sample}_imputed_samples",
+        info = "{dataout}/{sample}/{sample}_imputed_info"
     params:
         prefix = lambda wildcards, output: output[0],
         iter = ITER,
@@ -142,21 +143,21 @@ rule Impute2:
 ## Change MT chromsome name to '26'
 rule FixChromName:
     input:
-        InFile = "{dataout}/{sample}/{sample}_imputed"
+        rules.Impute2.output.imp
     output:
-        OutFile = "{dataout}/{sample}/{sample}_imputed_ChromFixed"
+        "{dataout}/{sample}/{sample}_imputed_ChromFixed"
     conda:
         "envs/plink.yaml"
     shell:
         """
-        awk '{{$1 = "26"; print}}' {input.InFile} > {output.OutFile}
+        awk '{{$1 = "26"; print}}' {input} > {output}
         """
 
 ## Convert Oxford files to binary Plink files
 rule oxford2bed:
     input:
-        gen = "{dataout}/{sample}/{sample}_imputed_ChromFixed",
-        sample = "{dataout}/{sample}/{sample}_imputed_samples"
+        gen = rules.FixChromName.output,
+        sample = rules.Impute2.output.samp
     output:
         multiext("{dataout}/{sample}/Imputed_{sample}", ".bed", ".bim", ".fam")
     params:
@@ -174,8 +175,8 @@ rule oxford2bed:
 ## Convert Oxford files to .map/.ped files
 rule oxford2ped:
     input:
-        gen = "{dataout}/{sample}/{sample}_imputed_ChromFixed",
-        sample = "{dataout}/{sample}/{sample}_imputed_samples"
+        gen = rules.FixChromName.output,
+        sample = rules.Impute2.output.samp
     output:
         multiext("{dataout}/{sample}/Imputed_{sample}", ".map", ".ped")
     params:
@@ -193,8 +194,8 @@ rule oxford2ped:
 ## Convert Oxford files to .vcf files
 rule oxford2vcf:
     input:
-        gen = "{dataout}/{sample}/{sample}_imputed_ChromFixed",
-        sample = "{dataout}/{sample}/{sample}_imputed_samples"
+        gen = rules.FixChromName.output,
+        sample = rules.Impute2.output.samp
     output:
         "{dataout}/{sample}/Imputed_{sample}.vcf"
     params:

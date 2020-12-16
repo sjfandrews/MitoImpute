@@ -12,37 +12,62 @@ from snakemake.remote.HTTP import RemoteProvider as HTTPRemoteProvider
 FTP = FTPRemoteProvider()
 HTTP = HTTPRemoteProvider()
 
+AF = ['0.01', '0.005', '0.001']
+
 rule all:
     input:
-        "resources/example/ReferencePanel/MtMap.txt",
-        "resources/example/ReferencePanel/MtStrand.txt",
-        expand("resources/example/ReferencePanel/ReferencePanel.{ext}", ext = ['hap.gz', 'legend.gz']),
-        expand("resources/example/ReferencePanel/ReferencePanel.{ext}", ext = ['ped', 'map']),
-        expand("resources/example/ReferencePanel/ReferencePanel.{ext}", ext = ['gen.gz', 'samples']),
-        expand("resources/example/SamplePanel/ExampleSamplePanel.{ext}", ext = ['ped', 'map']),
-        expand("resources/example/SamplePanel/ExampleSamplePanel.{ext}", ext = ['bed', 'bim', 'fam']),
+        "resources/ReferencePanel_v1_example/ReferencePanel_v1_example_MtMap.txt",
+        "resources/ReferencePanel_v1_example/ReferencePanel_v1_example_MtStrand.txt",
+        'resources/ReferencePanel_v1_example/ReferencePanelSNPs_MAFexample.txt',
+        'resources/ReferencePanel_v1_example/ReferencePanelHgs_MAFexample.txt',
+        expand("resources/ReferencePanel_v1_{af}/ReferencePanelSNPs_MAF{af}.txt", af = AF),
+        expand("resources/ReferencePanel_v1_{af}/ReferencePanelHgs_MAF{af}.txt", af = AF),
+        expand("resources/ReferencePanel_v1_example/ReferencePanel_v1_example.{ext}", ext = ['hap.gz', 'legend.gz']),
+        expand("resources/ReferencePanel_v1_example/ReferencePanel_v1_example.{ext}", ext = ['ped', 'map']),
+        expand("resources/ReferencePanel_v1_example/ReferencePanel_v1_example.{ext}", ext = ['gen.gz', 'samples']),
+        expand("resources/example/example.{ext}", ext = ['ped', 'map']),
+        expand("resources/example/example.{ext}", ext = ['bed', 'bim', 'fam']),
+
+##============================================================================##
+##  Additional Reference Files
+##============================================================================##
+
+rule ReferenceSNPs:
+    input: 'resources/ReferencePanel_v1_{af}/ReferencePanel_v1_highQual_MAF{af}_filtered.vcf.gz'
+    output: 'resources/ReferencePanel_v1_{af}/ReferencePanelSNPs_MAF{af}.txt'
+    conda:
+        "../envs/vcf.yaml"
+    shell:
+        "bcftools query -f '%CHROM\t%POS\t%REF\t%ALT\t%AC\t%AN\t%AF\n' {input} > {output}"
+
+# https://github.com/seppinho/haplogrep-cmd
+rule ReferenceHgs:
+    input: 'resources/ReferencePanel_v1_{af}/ReferencePanel_v1_highQual_MAF{af}_filtered.vcf.gz'
+    output: 'resources/ReferencePanel_v1_{af}/ReferencePanelHgs_MAF{af}.txt'
+    shell:
+        "src/haplogrep-cmd/haplogrep classify --in {input} --format vcf --out {output}"
 
 ##============================================================================##
 ##  Example Reference Panel
 ##============================================================================##
 
 rule ExampleReferenceSamples:
-    input: ref = 'resources/ReferencePanel/ReferencePanel_haplogroups.txt'
-    output: out = "resources/example/RefSampleList.txt"
+    input: ref = 'resources/ReferencePanel_v1_0.01/ReferencePanelHgs_MAF0.01.txt'
+    output: out = "resources/ReferencePanel_v1_example/RefSampleList.txt"
     script: '../scripts/ExampleRefSamples.R'
 
 ## 6b. Assign M sex label to reference Samples
 rule RefSampleSex:
     input: rules.ExampleReferenceSamples.output.out
-    output: "resources/example/ReferencePanel/RefSampleList_sex.txt"
+    output: "resources/ReferencePanel_v1_example/RefSampleList_sex.txt"
     shell: '''awk '{{$5 = "M"; print}}' {input} > {output}'''
 
 rule ExtractExampleReference:
     input:
-        inVCF = "resources/ReferencePanel/ReferencePanel.vcf.gz",
+        inVCF = 'resources/ReferencePanel_v1_0.01/ReferencePanel_v1_highQual_MAF0.01_filtered.vcf.gz',
         inSamples = rules.ExampleReferenceSamples.output.out
     output:
-        vcf = "resources/example/ReferencePanel/ReferencePanel.vcf.gz"
+        vcf = "resources/ReferencePanel_v1_example/ReferencePanel_v1_highQual_MAFexample_filtered.vcf.gz"
     conda:
         "../envs/vcf.yaml"
     shell:
@@ -51,15 +76,29 @@ rule ExtractExampleReference:
         bcftools index {output}
         """
 
+rule ExampleReferenceSNPs:
+    input: rules.ExtractExampleReference.output.vcf
+    output: 'resources/ReferencePanel_v1_example/ReferencePanelSNPs_MAFexample.txt'
+    conda:
+        "../envs/vcf.yaml"
+    shell:
+        "bcftools query -f '%CHROM\t%POS\t%REF\t%ALT\t%AC\t%AN\t%AF\n' {input} > {output}"
+
+rule ExampleReferenceHgs:
+    input: rules.ExtractExampleReference.output.vcf,
+    output: 'resources/ReferencePanel_v1_example/ReferencePanelHgs_MAFexample.txt'
+    shell:
+        "src/haplogrep-cmd/haplogrep classify --in {input} --format vcf --out {output}"
+
 ## 7. Convert to Oxford format
 rule Oxford:
     input:
         vcf = rules.ExtractExampleReference.output.vcf,
-        sex = "resources/example/ReferencePanel/RefSampleList_sex.txt"
+        sex = "resources/example/ReferencePanel_v1_0.01/RefSampleList_sex.txt"
     output:
-        expand("resources/example/ReferencePanel/ReferencePanel.{ext}", ext = ['hap.gz', 'legend.gz'])
+        expand("resources/ReferencePanel_v1_example/ReferencePanel_v1_example.{ext}", ext = ['hap.gz', 'legend.gz'])
     params:
-        out = "resources/example/ReferencePanel/ReferencePanel"
+        out = "resources/ReferencePanel_v1_example/ReferencePanel_v1_example"
     conda:
         "../envs/vcf.yaml"
     shell:
@@ -69,9 +108,9 @@ rule Oxford:
 rule Plink:
     input: vcf = rules.ExtractExampleReference.output.vcf,
     output:
-        expand("resources/example/ReferencePanel/ReferencePanel.{ext}", ext = ['ped', 'map'])
+        expand("resources/ReferencePanel_v1_example/ReferencePanel_v1_example.{ext}", ext = ['ped', 'map'])
     params:
-        out = "resources/example/ReferencePanel/ReferencePanel"
+        out = "resources/ReferencePanel_v1_example/ReferencePanel_v1_example"
     conda:
         "../envs/plink.yaml"
     shell:
@@ -81,11 +120,11 @@ rule Plink:
 rule GenSample:
     input:
         vcf = rules.ExtractExampleReference.output.vcf,
-        sex = "resources/example/ReferencePanel/RefSampleList_sex.txt"
+        sex = "resources/ReferencePanel_v1_example/RefSampleList_sex.txt"
     output:
-        expand("resources/example/ReferencePanel/ReferencePanel.{ext}", ext = ['gen.gz', 'samples'])
+        expand("resources/ReferencePanel_v1_example/ReferencePanel_v1_example.{ext}", ext = ['gen.gz', 'samples'])
     params:
-        out = "resources/example/ReferencePanel/ReferencePanel"
+        out = "resources/ReferencePanel_v1_example/ReferencePanel_v1_example"
     conda:
         "../envs/vcf.yaml"
     shell:
@@ -96,8 +135,8 @@ rule MakeMapFile:
     input:
         vcf = rules.ExtractExampleReference.output.vcf,
     output:
-        map = "resources/example/ReferencePanel/MtMap.txt",
-        strand = "resources/example/ReferencePanel/MtStrand.txt"
+        map = "resources/ReferencePanel_v1_example/ReferencePanel_v1_example_MtMap.txt",
+        strand = "resources/ReferencePanel_v1_example/ReferencePanel_v1_example_MtStrand.txt"
     script:
         '../scripts/mt_recombination_map.R'
 
@@ -126,7 +165,7 @@ rule Get1kgMT_vcf:
 rule NormaliseVcf:
     input:
         vcf = rules.Get1kgMT_vcf.output.vcf,
-        fasta = "resources/example/ReferencePanel/rCRS.fasta"
+        fasta = "resources/alignments/rCRS.fasta"
     output: temp("resources/example/data/ThousandGenomes/chrMT_1kg_norm_firstAlt.vcf.gz")
     conda:
         "../envs/vcf.yaml"
@@ -168,7 +207,7 @@ rule ExtractPlatformMTsnps:
 
 rule ExampleSampleIDs:
     input: info = rules.Get1kgMT_vcf.output.info,
-    output: out = "resources/example/SampleIDList.txt"
+    output: out = "resources/example/exampleIDList.txt"
     conda:
         "../envs/r.yaml"
     script: '../scripts/ExampleSampleIDs.R'
@@ -178,7 +217,7 @@ rule ExampleSamplePanel:
         inVCF = "resources/example/data/ThousandGenomes/chrMT_1kg_Human610-Quadv1_B-b37.vcf.gz",
         inSamples = rules.ExampleSampleIDs.output.out
     output:
-        "resources/example/SamplePanel/ExampleSamplePanel.vcf.gz"
+        "resources/example/example.vcf.gz"
     conda:
         "../envs/vcf.yaml"
     shell:
@@ -187,11 +226,11 @@ rule ExampleSamplePanel:
 
 rule vcf2Plink:
     input:
-        vcf = "resources/example/SamplePanel/ExampleSamplePanel.vcf.gz",
+        vcf = "resources/example/example.vcf.gz",
     output:
-        expand("resources/example/SamplePanel/ExampleSamplePanel.{ext}", ext = ['ped', 'map'])
+        expand("resources/example/example.{ext}", ext = ['ped', 'map'])
     params:
-        out = "resources/example/SamplePanel/ExampleSamplePanel"
+        out = "resources/example/example"
     conda:
         "../envs/plink.yaml"
     shell:
@@ -199,11 +238,11 @@ rule vcf2Plink:
 
 rule vcf2BPlink:
     input:
-        vcf = "resources/example/SamplePanel/ExampleSamplePanel.vcf.gz",
+        vcf = "resources/example/example.vcf.gz",
     output:
-        expand("resources/example/SamplePanel/ExampleSamplePanel.{ext}", ext = ['bed', 'bim', 'fam'])
+        expand("resources/example/example.{ext}", ext = ['bed', 'bim', 'fam'])
     params:
-        out = "resources/example/SamplePanel/ExampleSamplePanel"
+        out = "resources/example/example"
     conda:
         "../envs/plink.yaml"
     shell:

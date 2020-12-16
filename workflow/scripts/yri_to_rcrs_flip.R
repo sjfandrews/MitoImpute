@@ -126,5 +126,3 @@ message(sprintf(strng, sum(out$flip, na.rm = T), nrow(out)))
 out %>%
   select(CHROM, SNP, cm, POS, A1_flip, A2_flip)  %>%
   write_tsv(outfile, col_names = F)
-
-sink()
