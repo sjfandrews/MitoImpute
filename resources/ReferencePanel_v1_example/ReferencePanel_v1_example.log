@@ -1,0 +1,33 @@
+PLINK v1.90b5.2 64-bit (9 Jan 2018)
+Options in effect:
+  --double-id
+  --out resources/ReferencePanel_v1_example/ReferencePanel_v1_example
+  --recode
+  --vcf resources/ReferencePanel_v1_example/ReferencePanel_v1_highQual_MAFexample_filtered.vcf.gz
+
+Hostname: Sheas-iMac.local
+Working directory: /Users/sheaandrews/GitCode/MitoImpute
+Start time: Tue Dec 15 20:24:25 2020
+
+Random number seed: 1608081865
+32768 MB RAM detected; reserving 16384 MB for main workspace.
+--vcf:
+resources/ReferencePanel_v1_example/ReferencePanel_v1_example-temporary.bed +
+resources/ReferencePanel_v1_example/ReferencePanel_v1_example-temporary.bim +
+resources/ReferencePanel_v1_example/ReferencePanel_v1_example-temporary.fam
+written.
+410 variants loaded from .bim file.
+1783 people (0 males, 0 females, 1783 ambiguous) loaded from .fam.
+Ambiguous sex IDs written to
+resources/ReferencePanel_v1_example/ReferencePanel_v1_example.nosex .
+Using 1 thread (no multithreaded calculations invoked).
+Before main variant filters, 1783 founders and 0 nonfounders present.
+Calculating allele frequencies... done.
+Total genotyping rate is 0.999278.
+410 variants and 1783 people pass filters and QC.
+Note: No phenotypes present.
+--recode ped to
+resources/ReferencePanel_v1_example/ReferencePanel_v1_example.ped +
+resources/ReferencePanel_v1_example/ReferencePanel_v1_example.map ... done.
+
+End time: Tue Dec 15 20:24:25 2020
