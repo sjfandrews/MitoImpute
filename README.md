@@ -6,7 +6,7 @@
 4. Converts Bplink files to:
    - oxford format (.gen/.sample)
    - plink format (.map/.ped)
-5. Runs the chromsome X Impute2 imputation protocol. This step uses a custom mitochondrial reference panel constructed using the MitoImputePrep pipeline - see below.
+5. Runs the chromsome X Impute2 imputation protocol. This step uses a custom mitochondrial genome reference panel.
 6. Fixes chromosome label on the Impute2 output
 7. Converts the Imputed files to:
    - Bplink format
@@ -106,3 +106,7 @@ install.packages(c("tidyverse", "ggfittext", "devtools"))
 ## Install HiMC
 devtools::install_github(c("vserch/himc/HiMC"))
 ```
+
+
+## Citation
+McInerney, T. W. et al. (2019) MitoImpute: A Snakemake pipeline for imputation of mitochondrial genetic variants. (BioRxiv)[https://www.biorxiv.org/content/10.1101/649293v2].
