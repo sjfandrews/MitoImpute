@@ -23,6 +23,8 @@ message(
     '\nLog File: ', log_path, '\n'
 )
 
+message(find.package("HiMC"))
+
 ## ===============================================##
 ## Functions, Librays etc
 ## ===============================================##
@@ -116,7 +118,7 @@ p2 <- ggplot(samp_imp.info, aes(x = position, y = info_comb, colour = as.factor(
     geom_point() +
     theme_bw() +
     labs(
-      x = 'mtDNA position', 
+      x = 'mtDNA position',
       y = 'Info Score',
       title = 'mtSNP INFO scores with Haplogroup defining SNPs highlighted'
     ) +
