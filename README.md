@@ -43,7 +43,7 @@ Options for the snakemake file are set in the corresponding config file ```confi
 SAMPLE: 'name of input binary plink file'
 DATAIN: 'path/to/input/directory'
 DATAOUT: 'path/to/output/directory'
-REFDATA: 'path/to/reference/panel'
+REFAF: [0.01, 0.005, 0.001, 'example']
 INFOCUT: Info score threshold
 ITER: Total number of MCMC iterations to perform, including burn-in.
 BURNIN: Number of MCMC iteractions to discard as burn-in
@@ -64,10 +64,10 @@ Snakemake handles parallelization of jobs using [wildcards](https://snakemake.re
 
 config file with multiple samples
 ```
-SAMPLE: ['ExampleSamplePanel', 'ExampleSamplePanel_2', 'ExampleSamplePanel_3']
-DATAIN: 'example/SamplePanel'
-DATAOUT: "example/imputed"
-REFDATA: "example/ReferencePanel"
+SAMPLE: ['example', 'example_2', 'example_3']
+DATAIN: 'resources/example'
+DATAOUT: "results/example"
+REFAF: "example"
 INFOCUT: 0
 ITER: 2
 BURNIN: 1
