@@ -38,7 +38,7 @@ rule ReferenceSNPs:
     conda:
         "../envs/vcf.yaml"
     shell:
-        "bcftools query -f '%CHROM\t%POS\t%REF\t%ALT\t%AC\t%AN\t%AF\n' {input} > {output}"
+        "bcftools norm -m +any {input} | bcftools query -f '%CHROM\t%POS\t%REF\t%ALT\t%AC\t%AN\t%AF\n' > {output}"
 
 # https://github.com/seppinho/haplogrep-cmd
 rule ReferenceHgs:

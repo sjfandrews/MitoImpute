@@ -57,7 +57,7 @@ nucleotide_flip <- function(x){
 }
 
 ##  Read in reference
-ref <- read_tsv(reference, col_types = "cicciid",
+ref <- read_tsv(reference, col_types = "ciccccc",
   col_names = c("CHROM", "POS", "Ref", "Alt", "AC", "AN", "AF"))
 
 ## Read in sample bim file
@@ -93,11 +93,18 @@ check_aln <- Vectorize(function(ret_allele, oth_allele, ref) {
 })
 
 flip <- . %>%
-  mutate(noflip = !is.na(Ref) & (A1 == Ref | A2 == Ref)) %>%
-  mutate(A1_flip = ifelse(noflip, A1, nucleotide_flip(A1))) %>%
-  mutate(A2_flip = ifelse(noflip, A2, nucleotide_flip(A2))) %>%
-  mutate(chk_a1 = check_aln(A1_flip, A2_flip, Ref)) %>%
-  mutate(chk_a2 = check_aln(A2_flip, A1_flip, Ref))
+  mutate(
+    noflip = case_when(
+      !is.na(Ref) & (A1 == Ref | A2 == Ref) ~ TRUE, 
+      is.na(Ref) ~ TRUE, 
+      TRUE ~ FALSE
+    )) %>% 
+  mutate(
+    A1_flip = ifelse(noflip, A1, nucleotide_flip(A1)), 
+    A2_flip = ifelse(noflip, A2, nucleotide_flip(A2)), 
+    chk_a1 = check_aln(A1_flip, A2_flip, Ref), 
+    chk_a2 = check_aln(A2_flip, A1_flip, Ref)
+  )
 
 strng <- "Percentage of SNPs aligining to reference panel %s to rCRS conversion: %s"
 message(sprintf(strng, "prior", perc.pos))
@@ -121,7 +128,7 @@ out %>% filter(!is.na(Ref)) %>%
          perc_a2 = nmiss_a2 / nrow(filter(out, !is.na(Ref))))
 
 strng <- "flipped strand due to allele mismatch at %i out of %i SNPs."
-message(sprintf(strng, sum(out$flip, na.rm = T), nrow(out)))
+message(sprintf(strng, sum(!out$noflip, na.rm = T), nrow(out)))
 
 out %>%
   select(CHROM, SNP, cm, POS, A1_flip, A2_flip)  %>%

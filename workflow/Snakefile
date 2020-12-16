@@ -30,7 +30,7 @@ rule SexFam:
     input: expand("{datain}/{{sample}}.fam", datain=DATAIN)
     output: temp("{dataout}/{sample}/{sample}_maleOnly.fam")
     log:
-        'logs/{dataout}/SexFam:{sample}.log'
+        '{dataout}/{sample}/logs/SexFam.log'
     shell:
         """
         (awk '{{$5 = "1"; print}}' {input} > {output}) &> {log}
@@ -48,7 +48,7 @@ rule chrMT:
         inFile = lambda wildcards, input: input[0][:-4],
         prefix = lambda wildcards, output: output[0][:-4]
     log:
-        'logs/{dataout}/chrMT:{sample}.log',
+        '{dataout}/{sample}/logs/chrMT.log',
     conda:
         "envs/plink.yaml"
     shell:
@@ -66,7 +66,7 @@ rule yri2rcrs_flip:
     output:
         bim = temp("{dataout}/{sample}/chrMT_{sample}_rcrsFlipped.bim")
     log:
-        'logs/{dataout}/yri2rcrs_flip:{sample}.log'
+        '{dataout}/{sample}/logs/yri2rcrs_flip.log'
     conda:
         "envs/r.yaml"
     script:
@@ -83,7 +83,7 @@ rule bplink2oxford:
         inFile = lambda wildcards, input: input[0][:-4],
         prefix = lambda wildcards, output: output[0][:-4]
     log:
-        'logs/{dataout}/bplink2oxford:{sample}.log',
+        '{dataout}/{sample}/logs/bplink2oxford.log',
     conda:
         "envs/plink.yaml"
     shell:
@@ -103,7 +103,7 @@ rule bplink2plink:
         inFile = lambda wildcards, input: input[0][:-4],
         prefix = lambda wildcards, output: output[0][:-4]
     log:
-        'logs/{dataout}/bplink2plink:{sample}.log',
+        '{dataout}/{sample}/logs/bplink2plink.log',
     conda:
         "envs/plink.yaml"
     shell:
@@ -130,7 +130,7 @@ rule Impute2:
         burnin = BURNIN,
         khap = KHAP
     log:
-        'logs/{dataout}/Impute2:{sample}.log',
+        '{dataout}/{sample}/logs/Impute2.log',
     conda:
         "envs/impute2.yaml"
     shell:
@@ -163,7 +163,7 @@ rule oxford2bed:
     params:
         prefix = lambda wildcards, output: output[0][:-4]
     log:
-        'logs/{dataout}/oxford2bed:{sample}.log',
+        '{dataout}/{sample}/logs/oxford2bed.log',
     conda:
         "envs/plink.yaml"
     shell:
@@ -182,7 +182,7 @@ rule oxford2ped:
     params:
         prefix = lambda wildcards, output: output[0][:-4]
     log:
-        'logs/{dataout}/oxford2ped:{sample}.log',
+        '{dataout}/{sample}/logs/oxford2ped.log',
     conda:
         "envs/plink.yaml"
     shell:
@@ -201,7 +201,7 @@ rule oxford2vcf:
     params:
         prefix = lambda wildcards, output: output[0][:-4]
     log:
-        'logs/{dataout}/oxford2vcf:{sample}.log',
+        '{dataout}/{sample}/logs/oxford2vcf.log',
     conda:
         "envs/plink.yaml"
     shell:
@@ -227,7 +227,7 @@ rule plots:
         sample = '{sample}',
         info_cut = INFOCUT,
     log:
-        'logs/{dataout}/plots:{sample}.log',
+        '{dataout}/{sample}/logs/plots.log',
     conda:
         'envs/r.yaml'
     script:

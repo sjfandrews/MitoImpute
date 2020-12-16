@@ -14,6 +14,3 @@ INFOCUT: 0
 ITER: 2
 BURNIN: 1
 KHAP: 1000
-
-## Uncommenting below will use the full reference panel
-#REFDATA: ["resources/ReferencePanel_v1_0.01", "resources/ReferencePanel_v1_0.005", "resources/ReferencePanel_v1_0.001"]

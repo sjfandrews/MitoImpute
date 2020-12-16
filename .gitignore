@@ -55,3 +55,4 @@ cluster.yaml
 sandbox/*
 logs/*
 src/*
+*.log
