@@ -111,4 +111,4 @@ devtools::install_github(c("vserch/himc/HiMC"))
 
 
 ## Citation
-McInerney, T. W. et al. (2019) MitoImpute: A Snakemake pipeline for imputation of mitochondrial genetic variants. (BioRxiv)[https://www.biorxiv.org/content/10.1101/649293v2].
+McInerney, T. W. et al. (2019) MitoImpute: A Snakemake pipeline for imputation of mitochondrial genetic variants. [BioRxiv](https://www.biorxiv.org/content/10.1101/649293v2).
