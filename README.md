@@ -1,3 +1,5 @@
+[![DOI](https://zenodo.org/badge/143345792.svg)](https://zenodo.org/badge/latestdoi/143345792)
+
 # MitoImpute
 **MitoImpute** is a snakemake pipeline for the imputation of mitochondrial genomes using Impute2 Chromosome X protocol. The steps in the pipline include:
 1. Change sex of all samples to male (as males are haploid for the X chromsome)
