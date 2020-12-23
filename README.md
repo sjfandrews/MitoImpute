@@ -1,7 +1,28 @@
 [![DOI](https://zenodo.org/badge/143345792.svg)](https://zenodo.org/badge/latestdoi/143345792)
 
+# Reference Alignments
+
+The reference alignments included in this repository are:
+*	`resources/alignments/McInerney_Master_Alignment_July18_2018.fasta.gz`
+*	`resources/alignments/hsapiensCRS7k.fasta.gz`
+
+`McInerney_Master_Alignment_July18_2018.fasta.gz` is the novel reference alignment constructed in 2018 from the sequences downloaded on the 18th of July, 2018. It contains 44,299 aligned complete mitochondrial DNA sequences. These sequences are all 16,569 DNA nucleotide states long (to match the numbering conventions of the revised Cambridge Reference Sequence - Andrews et al., 1999). From this alignment the Reference Panels were filtered down to 36,960 sequences and filtered to thresholds detailed in [McInerney et al. (2019)](https://www.biorxiv.org/content/10.1101/649293v2).
+
+`hsapiensCRS7k.fasta.gz` is the previous reference alignment constructed in 2011 by Dr's Simon Easteal and Lars Jermiin. It contains 7,747 aligned complete mitochondrial DNA sequences. These sequences are all 16,569 DNA nucleotide states long (to match the numbering conventions of the revised Cambridge Reference Sequence - Andrews et al., 1999). This curated alignment was used to align the sequences downloaded on the 18th of July 2018. Novel sequences were aligned in batches of 2,500 sequences. Any gaps forced into 'hsapiensCRS7k.fasta.gz' were removed.
+
+# Reference Panels
+
+The reference panels included in this repository are:
+*	`ReferencePanel_v1_0.01`
+*	`ReferencePanel_v1_0.005`
+*	`ReferencePanel_v1_0.001`
+
+Each of these corresponds to a filtering of sites to a minor allele frequency of 1%, 0.5%, and 0.01%, respectively. All reference panels contain variant information for the 36,960 sequences from the `McInerney_Master_Alignment_July18_2018.fasta.gz` reference alignment.
+
+All references panels can be found in the directory: `MitoImpute/resources/` in their own specific subdirectory. Each reference panel is stored in VCF (\*.vcf.gz) and oxford (\*.gen.gz, .*hap.gz, *.legend.gz, *.samples) formats. These files will be necessary for using a reference panel for genotype imputation.
+
 # MitoImpute
-**MitoImpute** is a snakemake pipeline for the imputation of mitochondrial genomes using Impute2 Chromosome X protocol. The steps in the pipline include:
+**MitoImpute** is a snakemake pipeline for the imputation of mitochondrial genomes using Impute2 Chromosome X framework. The steps in the pipline include:
 1. Change sex of all samples to male (as males are haploid for the X chromsome)
 2. Extract mtSNPs from Bplink (.bed/.bim/.fam)
 3. Check reference alignment (hg19, Yoruba, or b37, rCRS) of mtSNPs - converts YRI to rCRS.
@@ -54,12 +75,12 @@ BURNIN: Number of MCMC iteractions to discard as burn-in
 The default options are for the example dataset.
 
 #### Reference panel
-A custom reference panel for imputation can be found in the ```resources/ReferencePanel/``` directory. The key files consist of:
+A custom reference panels for imputation can be found in the ```resources/``` directory. The key files consist of:
 1. -h: A file of known haplotypes ```(ReferencePanel.hap.gz)```.
 2. -l: Legend file(s) with information about the SNPs in the -h file ```(ReferencePanel.legend.gz)```
 3. -m: A fine-scale recombination map for the region to be analyzed ```(MtMap.txt)```
 
-setting REFDATA in the ```config/config.yaml``` file to ```resources/ReferencePanel``` will automaticlay call these files.
+setting REFAF in the `config/config.yaml` file to the desired MAF will automaticlay call these files.
 
 #### Parallelization
 Snakemake handles parallelization of jobs using [wildcards](https://snakemake.readthedocs.io/en/stable/snakefiles/rules.html#wildcards). Defining a list of sample names in the config.yaml file and specifing the [number of avaliable cores](https://snakemake.readthedocs.io/en/stable/executable.html#useful-command-line-arguments) in the command line will result in snakemake submitting jobs in parallel.
