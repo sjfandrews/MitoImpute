@@ -6,7 +6,7 @@ The reference alignments included in this repository are:
 *	`resources/alignments/McInerney_Master_Alignment_July18_2018.fasta.gz`
 *	`resources/alignments/hsapiensCRS7k.fasta.gz`
 
-`McInerney_Master_Alignment_July18_2018.fasta.gz` is the novel reference alignment constructed in 2018 from the sequences downloaded on the 18th of July, 2018. It contains 44,299 aligned complete mitochondrial DNA sequences. These sequences are all 16,569 DNA nucleotide states long (to match the numbering conventions of the revised Cambridge Reference Sequence - Andrews et al., 1999). From this alignment the Reference Panels were filtered down to 36,960 sequences and filtered to thresholds detailed in [McInerney et al. (2019)](https://www.biorxiv.org/content/10.1101/649293v2).
+`McInerney_Master_Alignment_July18_2018.fasta.gz` is the novel reference alignment constructed in 2018 from the sequences downloaded on the 18th of July, 2018. It contains 44,299 aligned complete mitochondrial DNA sequences. These sequences are all 16,569 DNA nucleotide states long (to match the numbering conventions of the revised Cambridge Reference Sequence - Andrews et al., 1999). From this alignment the Reference Panels were filtered down to 36,960 sequences and filtered to thresholds detailed in [McInerney et al. (2020)](https://www.biorxiv.org/content/10.1101/649293v3).
 
 `hsapiensCRS7k.fasta.gz` is the previous reference alignment constructed in 2011 by Dr's Simon Easteal and Lars Jermiin. It contains 7,747 aligned complete mitochondrial DNA sequences. These sequences are all 16,569 DNA nucleotide states long (to match the numbering conventions of the revised Cambridge Reference Sequence - Andrews et al., 1999). This curated alignment was used to align the sequences downloaded on the 18th of July 2018. Novel sequences were aligned in batches of 2,500 sequences. Any gaps forced into `hsapiensCRS7k.fasta.gz` were removed.
 
@@ -132,4 +132,4 @@ devtools::install_github(c("vserch/himc/HiMC"))
 
 
 ## Citation
-McInerney, T. W. et al. (2019) MitoImpute: A Snakemake pipeline for imputation of mitochondrial genetic variants. [BioRxiv](https://www.biorxiv.org/content/10.1101/649293v2).
+McInerney, T. W. et al. (2020) A globally diverse reference alignment and panel for imputation of mitochondrial DNA variants. [BioRxiv](https://www.biorxiv.org/content/10.1101/649293v3).
