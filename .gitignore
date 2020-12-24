@@ -56,3 +56,4 @@ sandbox/*
 logs/*
 src/*
 *.log
+.DS_Store
